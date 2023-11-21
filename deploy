@@ -4,6 +4,7 @@ set -e
 TARGET=10.0.100.3
 USER=root
 SSH_ARGS="-o ConnectTimeout=5 -o StrictHostKeyChecking=no"
+API_PORT=8081
 
 echo "Building..."
 GOOS=linux GOARCH=arm go build -o frc-radio-api
@@ -15,6 +16,7 @@ scp -O $SSH_ARGS frc-radio-api.init $USER@$TARGET:/etc/init.d/frc-radio-api
 ssh $SSH_ARGS $USER@$TARGET "chmod +x /usr/bin/frc-radio-api /etc/init.d/frc-radio-api && /etc/init.d/frc-radio-api start"
 
 echo "\nChecking health..."
-curl -s --fail "http://$TARGET:8081/health" | grep OK
+sleep 1
+(curl -s --fail "http://$TARGET:$API_PORT/health" | grep OK) || (echo "Health check failed." && exit 1)
 
 echo "\nDeployed successfully."
