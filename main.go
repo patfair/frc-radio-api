@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/digineo/go-uci"
 	"github.com/gorilla/mux"
 	"log"
 	"net"
@@ -44,7 +45,8 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func statusHandler(w http.ResponseWriter, r *http.Request) {
-	_, _ = fmt.Fprintf(w, "Status page")
+	sections, _ := uci.GetSections("wireless", "wifi-device")
+	_, _ = fmt.Fprintf(w, "%v", sections)
 }
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
