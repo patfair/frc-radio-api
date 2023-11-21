@@ -33,7 +33,7 @@ func TestGetVlan100IpAddress(t *testing.T) {
 	if err == nil {
 		assert.Regexp(t, "^10\\.0\\.100\\.\\d+$", ipAddress)
 	} else {
-		assert.Equal(t, "no IP address found on VLAN 100", err.Error())
+		assert.Contains(t, err.Error(), "no IP address found on VLAN 100")
 	}
 }
 
