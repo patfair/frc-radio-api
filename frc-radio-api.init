@@ -1,6 +1,12 @@
 #!/bin/sh /etc/rc.common
 
+START=11
 USE_PROCD=1
+
+boot() {
+  cp /etc/config/wireless-boot /etc/config/wireless
+  start
+}
 
 start_service() {
   procd_open_instance
