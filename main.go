@@ -5,9 +5,11 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"regexp"
 )
 
+const logFilePath = "/var/log/frc-radio-api.log"
 const port = 8081
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -16,6 +18,14 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
+	if err == nil {
+		defer logFile.Close()
+		log.SetOutput(logFile)
+	} else {
+		log.Printf("Error opening log file; logging to stdout instead: %v", err)
+	}
+
 	ipAddress, err := getVlan100IpAddress()
 	if err != nil {
 		log.Fatalf("Error: %v", err)
@@ -23,7 +33,7 @@ func main() {
 
 	listenAddress := fmt.Sprintf("%s:%d", ipAddress, port)
 	http.HandleFunc("/", handler)
-	fmt.Printf("Server listening on %s\n", listenAddress)
+	log.Printf("Server listening on %s\n", listenAddress)
 	if err := http.ListenAndServe(listenAddress, nil); err != nil {
 		log.Fatal(err)
 	}

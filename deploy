@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+TARGET=10.0.100.3
+USER=root
+SSH_ARGS="-o ConnectTimeout=5 -o StrictHostKeyChecking=no"
+
+GOOS=linux GOARCH=arm go build -o frc-radio-api
+ssh $SSH_ARGS $USER@$TARGET "/etc/init.d/frc-radio-api stop"
+scp -O $SSH_ARGS frc-radio-api $USER@$TARGET:/usr/bin/
+scp -O $SSH_ARGS frc-radio-api.init $USER@$TARGET:/etc/init.d/frc-radio-api
+ssh $SSH_ARGS $USER@$TARGET "chmod +x /usr/bin/frc-radio-api /etc/init.d/frc-radio-api && /etc/init.d/frc-radio-api start"
