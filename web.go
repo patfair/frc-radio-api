@@ -40,7 +40,7 @@ func (web *web) newRouter() http.Handler {
 	router := mux.NewRouter()
 	router.HandleFunc("/", web.rootHandler).Methods("GET")
 	router.HandleFunc("/health", web.healthHandler).Methods("GET")
-	router.HandleFunc("/status", statusHandler).Methods("GET")
+	router.HandleFunc("/status", web.statusHandler).Methods("GET")
 	return router
 }
 
@@ -52,6 +52,12 @@ func (web *web) rootHandler(w http.ResponseWriter, r *http.Request) {
 // healthHandler returns a simple "OK" response to indicate that the server is running.
 func (web *web) healthHandler(w http.ResponseWriter, r *http.Request) {
 	_, _ = fmt.Fprintf(w, "OK")
+}
+
+// handleWebErr writes the given error out as plain text with a status code of 500.
+func handleWebErr(w http.ResponseWriter, err error) {
+	log.Printf("HTTP request error: %v", err)
+	http.Error(w, "Internal server error: "+err.Error(), 500)
 }
 
 // getVlan100IpAddress returns the IP address of the first interface that has an IP address on the 10.0.100.x VLAN.

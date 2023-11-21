@@ -1,10 +1,7 @@
 package main
 
 import (
-	"fmt"
-	"github.com/digineo/go-uci"
 	"log"
-	"net/http"
 	"os"
 )
 
@@ -20,12 +17,7 @@ func main() {
 		log.Printf("error opening log file; logging to stdout instead: %v", err)
 	}
 
-	accessPoint := newAccessPoint()
-	web := newWeb(accessPoint)
+	ap := newAccessPoint()
+	web := newWeb(ap)
 	web.run()
-}
-
-func statusHandler(w http.ResponseWriter, r *http.Request) {
-	sections, _ := uci.GetSections("wireless", "wifi-device")
-	_, _ = fmt.Fprintf(w, "%v", sections)
 }

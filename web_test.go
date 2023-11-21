@@ -7,21 +7,21 @@ import (
 	"testing"
 )
 
-func TestRoot(t *testing.T) {
+func TestWeb_rootHandler(t *testing.T) {
 	var web web
 	recorder := web.getHttpResponse("/")
 	assert.Equal(t, 302, recorder.Code)
 	assert.Equal(t, recorder.Header().Get("Location"), "/status")
 }
 
-func TestHealth(t *testing.T) {
+func TestWeb_healthHandler(t *testing.T) {
 	var web web
 	recorder := web.getHttpResponse("/health")
 	assert.Equal(t, 200, recorder.Code)
 	assert.Equal(t, recorder.Body.String(), "OK")
 }
 
-func TestNotFound(t *testing.T) {
+func TestWebNotFound(t *testing.T) {
 	var web web
 	recorder := web.getHttpResponse("/foo")
 	assert.Equal(t, 404, recorder.Code)
