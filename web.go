@@ -11,36 +11,46 @@ import (
 
 const port = 8081
 
-// runWebServer starts the HTTP server and blocks until the process terminates, serving requests.
-func runWebServer() {
+// web holds shared state across requests to the web server.
+type web struct {
+	accessPoint *accessPoint
+}
+
+// newWeb creates a new web instance.
+func newWeb(accessPoint *accessPoint) *web {
+	return &web{accessPoint: accessPoint}
+}
+
+// run starts the HTTP server and blocks until the process terminates, serving requests.
+func (web *web) run() {
 	ipAddress, err := getVlan100IpAddress()
 	if err != nil {
-		log.Fatalf("Error: %v", err)
+		log.Fatalf("error: %v", err)
 	}
 
 	listenAddress := fmt.Sprintf("%s:%d", ipAddress, port)
 	log.Printf("Server listening on %s\n", listenAddress)
-	if err := http.ListenAndServe(listenAddress, newRouter()); err != nil {
+	if err := http.ListenAndServe(listenAddress, web.newRouter()); err != nil {
 		log.Fatal(err)
 	}
 }
 
 // newRouter sets up the mapping between URLs and handlers.
-func newRouter() http.Handler {
+func (web *web) newRouter() http.Handler {
 	router := mux.NewRouter()
-	router.HandleFunc("/", rootHandler).Methods("GET")
-	router.HandleFunc("/health", healthHandler).Methods("GET")
+	router.HandleFunc("/", web.rootHandler).Methods("GET")
+	router.HandleFunc("/health", web.healthHandler).Methods("GET")
 	router.HandleFunc("/status", statusHandler).Methods("GET")
 	return router
 }
 
 // rootHandler redirects the root URL to the status page.
-func rootHandler(w http.ResponseWriter, r *http.Request) {
+func (web *web) rootHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/status", http.StatusFound)
 }
 
 // healthHandler returns a simple "OK" response to indicate that the server is running.
-func healthHandler(w http.ResponseWriter, r *http.Request) {
+func (web *web) healthHandler(w http.ResponseWriter, r *http.Request) {
 	_, _ = fmt.Fprintf(w, "OK")
 }
 

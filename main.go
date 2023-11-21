@@ -17,10 +17,12 @@ func main() {
 		defer logFile.Close()
 		log.SetOutput(logFile)
 	} else {
-		log.Printf("Error opening log file; logging to stdout instead: %v", err)
+		log.Printf("error opening log file; logging to stdout instead: %v", err)
 	}
 
-	runWebServer()
+	accessPoint := newAccessPoint()
+	web := newWeb(accessPoint)
+	web.run()
 }
 
 func statusHandler(w http.ResponseWriter, r *http.Request) {
