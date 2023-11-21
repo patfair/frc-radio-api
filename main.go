@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/gorilla/mux"
 	"log"
 	"net"
 	"net/http"
@@ -11,11 +12,6 @@ import (
 
 const logFilePath = "/var/log/frc-radio-api.log"
 const port = 8081
-
-func handler(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Received request from %s for %s with method %s", r.RemoteAddr, r.URL.Path, r.Method)
-	fmt.Fprintf(w, "Hello, World!")
-}
 
 func main() {
 	logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
@@ -31,12 +27,28 @@ func main() {
 		log.Fatalf("Error: %v", err)
 	}
 
+	router := mux.NewRouter()
+	router.HandleFunc("/", rootHandler).Methods("GET")
+	router.HandleFunc("/health", healthHandler).Methods("GET")
+	router.HandleFunc("/status", statusHandler).Methods("GET")
+
 	listenAddress := fmt.Sprintf("%s:%d", ipAddress, port)
-	http.HandleFunc("/", handler)
 	log.Printf("Server listening on %s\n", listenAddress)
-	if err := http.ListenAndServe(listenAddress, nil); err != nil {
+	if err := http.ListenAndServe(listenAddress, router); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func healthHandler(w http.ResponseWriter, r *http.Request) {
+	_, _ = fmt.Fprintf(w, "OK")
+}
+
+func statusHandler(w http.ResponseWriter, r *http.Request) {
+	_, _ = fmt.Fprintf(w, "Status page")
+}
+
+func rootHandler(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/status", http.StatusFound)
 }
 
 // getVlan100IpAddress returns the IP address of the first interface that has an IP address on the 10.0.100.x VLAN.
