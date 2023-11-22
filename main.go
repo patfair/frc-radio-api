@@ -18,6 +18,11 @@ func main() {
 	}
 
 	ap := newAccessPoint()
+
+	// Launch the web server in a separate thread.
 	web := newWeb(ap)
-	web.run()
+	go web.run()
+
+	// Run the access point loop in the main thread.
+	ap.run()
 }

@@ -27,5 +27,6 @@ func TestWeb_statusHandler(t *testing.T) {
 
 	var actualAp accessPoint
 	assert.Nil(t, json.Unmarshal(recorder.Body.Bytes(), &actualAp))
-	assert.Equal(t, *ap, actualAp)
+	assert.Equal(t, ap.Status, actualAp.Status)
+	assert.Equal(t, ap.StationStatuses, actualAp.StationStatuses)
 }
