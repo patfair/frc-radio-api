@@ -9,15 +9,18 @@ import (
 )
 
 const (
-	bootPollIntervalSec = 3
+	bootPollIntervalSec            = 3
+	statusPollIntervalSec          = 5
+	configurationRequestBufferSize = 10
 )
 
 // accessPoint holds the current state of the access point's configuration and any robot radios connected to it.
 type accessPoint struct {
-	Status            accessPointStatus         `json:"status"`
-	StationStatuses   map[string]*stationStatus `json:"stationStatuses"`
-	hardwareType      accessPointType
-	stationInterfaces map[station]string
+	Status                      accessPointStatus         `json:"status"`
+	StationStatuses             map[string]*stationStatus `json:"stationStatuses"`
+	hardwareType                accessPointType
+	stationInterfaces           map[station]string
+	configurationRequestChannel chan configurationRequest
 }
 
 // accessPointType represents the hardware type of the access point.
@@ -71,8 +74,9 @@ const (
 // newAccessPoint creates a new access point instance and initializes its fields to default values.
 func newAccessPoint() *accessPoint {
 	ap := accessPoint{
-		Status:       statusBooting,
-		hardwareType: determineHardwareType(),
+		Status:                      statusBooting,
+		hardwareType:                determineHardwareType(),
+		configurationRequestChannel: make(chan configurationRequest, configurationRequestBufferSize),
 	}
 	if ap.hardwareType == typeUnknown {
 		log.Fatal("Unable to determine access point hardware type; exiting.")
@@ -113,8 +117,27 @@ func (ap *accessPoint) run() {
 	ap.waitForStartup()
 
 	for {
-		time.Sleep(time.Second)
+		// Check if there are any pending configuration requests; if not, periodically poll wifi status.
+		select {
+		case request := <-ap.configurationRequestChannel:
+			// If there are multiple requests queued up, only consider the latest one.
+			numExtraRequests := len(ap.configurationRequestChannel)
+			for i := 0; i < numExtraRequests; i++ {
+				request = <-ap.configurationRequestChannel
+			}
+
+			log.Printf("Processing configuration request: %+v", request)
+			//ap.handleTeamWifiConfiguration(request)
+		case <-time.After(time.Second * statusPollIntervalSec):
+			//ap.updateTeamWifiStatuses()
+			//ap.updateTeamWifiBTU()
+		}
 	}
+}
+
+// enqueueConfigurationRequest adds the given configuration request to the asynchronous queue.
+func (ap *accessPoint) enqueueConfigurationRequest(request configurationRequest) {
+	ap.configurationRequestChannel <- request
 }
 
 // determineHardwareType determines the model of the access point.

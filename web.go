@@ -41,6 +41,7 @@ func (web *web) newRouter() http.Handler {
 	router.HandleFunc("/", web.rootHandler).Methods("GET")
 	router.HandleFunc("/health", web.healthHandler).Methods("GET")
 	router.HandleFunc("/status", web.statusHandler).Methods("GET")
+	router.HandleFunc("/configuration", web.configurationHandler).Methods("POST")
 	return router
 }
 
@@ -51,7 +52,7 @@ func (web *web) rootHandler(w http.ResponseWriter, r *http.Request) {
 
 // healthHandler returns a simple "OK" response to indicate that the server is running.
 func (web *web) healthHandler(w http.ResponseWriter, r *http.Request) {
-	_, _ = fmt.Fprintf(w, "OK")
+	_, _ = fmt.Fprintln(w, "OK")
 }
 
 // handleWebErr writes the given error out as plain text with a status code of 500.

@@ -16,6 +16,7 @@ func main() {
 	} else {
 		log.Printf("error opening log file; logging to stdout instead: %v", err)
 	}
+	log.Println("Starting FRC Radio API...")
 
 	ap := newAccessPoint()
 
