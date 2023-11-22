@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-const logFilePath = "/var/log/frc-radio-api.log"
+const logFilePath = "/root/frc-radio-api.log"
 
 func main() {
 	// Set up logging to file.
