@@ -1,4 +1,4 @@
-package main
+package web
 
 import (
 	"encoding/json"
@@ -6,7 +6,7 @@ import (
 )
 
 // statusHandler returns a JSON dump of the access point status.
-func (web *web) statusHandler(w http.ResponseWriter, r *http.Request) {
+func (web *WebServer) statusHandler(w http.ResponseWriter, r *http.Request) {
 	jsonData, err := json.MarshalIndent(web.accessPoint, "", "  ")
 	if err != nil {
 		handleWebErr(w, err)

@@ -1,4 +1,4 @@
-package main
+package radio
 
 import (
 	"crypto/sha256"
@@ -24,15 +24,15 @@ const (
 	monitoringErrorCode            = -999
 )
 
-// accessPoint holds the current state of the access point's configuration and any robot radios connected to it.
-type accessPoint struct {
+// AccessPoint holds the current state of the access point's configuration and any robot radios connected to it.
+type AccessPoint struct {
 	Channel                     int                       `json:"channel"`
 	Status                      accessPointStatus         `json:"status"`
-	StationStatuses             map[string]*stationStatus `json:"stationStatuses"`
-	hardwareType                accessPointType
+	StationStatuses             map[string]*StationStatus `json:"stationStatuses"`
+	Type                        accessPointType           `json:"-"`
+	ConfigurationRequestChannel chan ConfigurationRequest `json:"-"`
 	device                      string
 	stationInterfaces           map[station]string
-	configurationRequestChannel chan configurationRequest
 }
 
 // accessPointType represents the hardware type of the access point.
@@ -56,8 +56,8 @@ const (
 	statusError                         = "ERROR"
 )
 
-// stationStatus encapsulates the status of a single team station on the access point.
-type stationStatus struct {
+// StationStatus encapsulates the status of a single team station on the access point.
+type StationStatus struct {
 	Ssid               string  `json:"ssid"`
 	HashedWpaKey       string  `json:"hashedWpaKey"`
 	WpaKeySalt         string  `json:"wpaKeySalt"`
@@ -86,18 +86,18 @@ const (
 var ssidRe = regexp.MustCompile("ESSID: \"([-\\w ]*)\"")
 
 // newAccessPoint creates a new access point instance and initializes its fields to default values.
-func newAccessPoint() *accessPoint {
-	ap := accessPoint{
+func NewAccessPoint() *AccessPoint {
+	ap := AccessPoint{
 		Status:                      statusBooting,
-		hardwareType:                determineHardwareType(),
-		configurationRequestChannel: make(chan configurationRequest, configurationRequestBufferSize),
+		Type:                        determineHardwareType(),
+		ConfigurationRequestChannel: make(chan ConfigurationRequest, configurationRequestBufferSize),
 	}
-	if ap.hardwareType == typeUnknown {
+	if ap.Type == typeUnknown {
 		log.Fatal("Unable to determine access point hardware type; exiting.")
 	}
-	log.Printf("Detected access point hardware type: %v", ap.hardwareType)
+	log.Printf("Detected access point hardware type: %v", ap.Type)
 
-	switch ap.hardwareType {
+	switch ap.Type {
 	case typeLinksys:
 		ap.device = "radio0"
 		ap.stationInterfaces = map[station]string{
@@ -120,7 +120,7 @@ func newAccessPoint() *accessPoint {
 		}
 	}
 
-	ap.StationStatuses = make(map[string]*stationStatus)
+	ap.StationStatuses = make(map[string]*StationStatus)
 	for i := 0; i < int(stationCount); i++ {
 		ap.StationStatuses[station(i).String()] = nil
 	}
@@ -129,7 +129,7 @@ func newAccessPoint() *accessPoint {
 }
 
 // run loops indefinitely, handling configuration requests and polling the Wi-Fi status.
-func (ap *accessPoint) run() {
+func (ap *AccessPoint) Run() {
 	ap.waitForStartup()
 
 	// Initialize the in-memory state to match the access point's current configuration.
@@ -141,27 +141,22 @@ func (ap *accessPoint) run() {
 	for {
 		// Check if there are any pending configuration requests; if not, periodically poll Wi-Fi status.
 		select {
-		case request := <-ap.configurationRequestChannel:
+		case request := <-ap.ConfigurationRequestChannel:
 			// If there are multiple requests queued up, only consider the latest one.
-			numExtraRequests := len(ap.configurationRequestChannel)
+			numExtraRequests := len(ap.ConfigurationRequestChannel)
 			for i := 0; i < numExtraRequests; i++ {
-				request = <-ap.configurationRequestChannel
+				request = <-ap.ConfigurationRequestChannel
 			}
 			ap.Status = statusConfiguring
 			log.Printf("Processing configuration request: %+v", request)
 			ap.configure(request)
-			if len(ap.configurationRequestChannel) == 0 {
+			if len(ap.ConfigurationRequestChannel) == 0 {
 				ap.Status = statusActive
 			}
 		case <-time.After(time.Second * statusPollIntervalSec):
 			ap.updateStationMonitoring()
 		}
 	}
-}
-
-// enqueueConfigurationRequest adds the given configuration request to the asynchronous queue.
-func (ap *accessPoint) enqueueConfigurationRequest(request configurationRequest) {
-	ap.configurationRequestChannel <- request
 }
 
 // determineHardwareType determines the model of the access point.
@@ -174,7 +169,7 @@ func determineHardwareType() accessPointType {
 }
 
 // waitForStartup polls the Wi-Fi status and blocks until the access point has finished booting.
-func (ap *accessPoint) waitForStartup() {
+func (ap *AccessPoint) waitForStartup() {
 	for {
 		if err := exec.Command("iwinfo", ap.stationInterfaces[red1], "info").Run(); err == nil {
 			log.Println("Access point ready with baseline Wi-Fi configuration.")
@@ -186,21 +181,21 @@ func (ap *accessPoint) waitForStartup() {
 }
 
 // configure configures the access point with the given configuration.
-func (ap *accessPoint) configure(request configurationRequest) {
+func (ap *AccessPoint) configure(request ConfigurationRequest) {
 	if request.Channel > 0 {
 		uci.Set("wireless", ap.device, "channel", strconv.Itoa(request.Channel))
 		ap.Channel = request.Channel
 	}
 
-	if ap.hardwareType == typeLinksys {
+	if ap.Type == typeLinksys {
 		// Clear the state of the radio before loading teams; the Linksys AP is crash-prone otherwise.
-		ap.configureStations(map[string]stationConfiguration{})
+		ap.configureStations(map[string]StationConfiguration{})
 	}
 	ap.configureStations(request.StationConfigurations)
 }
 
 // configureStations configures the access point with the given team station configurations.
-func (ap *accessPoint) configureStations(stationConfigurations map[string]stationConfiguration) {
+func (ap *AccessPoint) configureStations(stationConfigurations map[string]StationConfiguration) {
 	retryCount := 1
 
 	for {
@@ -218,7 +213,7 @@ func (ap *accessPoint) configureStations(stationConfigurations map[string]statio
 			wifiInterface := fmt.Sprintf("@wifi-iface[%d]", position)
 			uci.Set("wireless", wifiInterface, "ssid", ssid)
 			uci.Set("wireless", wifiInterface, "key", wpaKey)
-			if ap.hardwareType == typeVividHosting {
+			if ap.Type == typeVividHosting {
 				uci.Set("wireless", wifiInterface, "sae_password", wpaKey)
 			}
 
@@ -231,7 +226,7 @@ func (ap *accessPoint) configureStations(stationConfigurations map[string]statio
 			log.Printf("Failed to reload configuration for device %s: %v", ap.device, err)
 		}
 
-		if ap.hardwareType == typeLinksys {
+		if ap.Type == typeLinksys {
 			// The Linksys AP returns immediately after 'wifi reload' but may not have applied the configuration yet;
 			// sleep for a bit to compensate. (The Vivid AP waits for the configuration to be applied before returning.)
 			time.Sleep(time.Second * linksysWifiReloadBackoffSec)
@@ -251,7 +246,7 @@ func (ap *accessPoint) configureStations(stationConfigurations map[string]statio
 
 // updateStationStatuses fetches the current Wi-Fi status (SSID, WPA key, etc.) for each team station and updates the
 // in-memory state.
-func (ap *accessPoint) updateStationStatuses() error {
+func (ap *AccessPoint) updateStationStatuses() error {
 	for station, stationInterface := range ap.stationInterfaces {
 		byteOutput, err := exec.Command("iwinfo", stationInterface, "info").Output()
 		fmt.Printf("Output for iwinfo %s info: %s\n", stationInterface, string(byteOutput))
@@ -264,7 +259,7 @@ func (ap *accessPoint) updateStationStatuses() error {
 				if strings.HasPrefix(ssid, "no-team-") {
 					ap.StationStatuses[station.String()] = nil
 				} else {
-					var status stationStatus
+					var status StationStatus
 					status.Ssid = ssid
 					status.HashedWpaKey, status.WpaKeySalt = getHashedWpaKeyAndSalt(station)
 					ap.StationStatuses[station.String()] = &status
@@ -282,7 +277,7 @@ func (ap *accessPoint) updateStationStatuses() error {
 
 // stationSsidsAreCorrect returns true if the configured networks as read from the access point match the requested
 // configuration.
-func (ap *accessPoint) stationSsidsAreCorrect(stationConfigurations map[string]stationConfiguration) bool {
+func (ap *AccessPoint) stationSsidsAreCorrect(stationConfigurations map[string]StationConfiguration) bool {
 	for stationName, stationStatus := range ap.StationStatuses {
 		if config, ok := stationConfigurations[stationName]; ok {
 			if ap.StationStatuses[stationName].Ssid != config.Ssid {
@@ -321,7 +316,7 @@ func getHashedWpaKeyAndSalt(station station) (string, string) {
 
 // updateStationMonitoring polls the access point for the current bandwidth usage and link state of each team station
 // and updates the in-memory state.
-func (ap *accessPoint) updateStationMonitoring() {
+func (ap *AccessPoint) updateStationMonitoring() {
 	for station, stationInterface := range ap.stationInterfaces {
 		stationStatus := ap.StationStatuses[station.String()]
 		if stationStatus == nil {
@@ -367,7 +362,7 @@ func parseBandwidthUsed(response string) float64 {
 }
 
 // Parses the given data from the access point's association list and updates the status structure with the result.
-func (status *stationStatus) parseAssocList(response string) {
+func (status *StationStatus) parseAssocList(response string) {
 	radioLinkRe := regexp.MustCompile("((?:[0-9A-F]{2}:){5}(?:[0-9A-F]{2})).*\\(SNR (\\d+)\\)\\s+(\\d+) ms ago")
 	rxRateRe := regexp.MustCompile("RX:\\s+(\\d+\\.\\d+)\\s+MBit/s")
 	txRateRe := regexp.MustCompile("TX:\\s+(\\d+\\.\\d+)\\s+MBit/s")

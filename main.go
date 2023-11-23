@@ -1,6 +1,8 @@
 package main
 
 import (
+	"github.com/patfair/frc-radio-api/radio"
+	"github.com/patfair/frc-radio-api/web"
 	"log"
 	"os"
 )
@@ -18,12 +20,12 @@ func main() {
 	}
 	log.Println("Starting FRC Radio API...")
 
-	ap := newAccessPoint()
+	ap := radio.NewAccessPoint()
 
 	// Launch the web server in a separate thread.
-	web := newWeb(ap)
-	go web.run()
+	webServer := web.NewWebServer(ap)
+	go webServer.Run()
 
 	// Run the access point loop in the main thread.
-	ap.run()
+	ap.Run()
 }

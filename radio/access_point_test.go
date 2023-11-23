@@ -1,4 +1,4 @@
-package main
+package radio
 
 import (
 	"github.com/stretchr/testify/assert"
@@ -7,7 +7,7 @@ import (
 )
 
 func TestNewAccessPoint(t *testing.T) {
-	accessPoint := newAccessPoint()
+	accessPoint := NewAccessPoint()
 	assert.Equal(t, statusBooting, accessPoint.Status)
 	if assert.Equal(t, int(stationCount), len(accessPoint.StationStatuses)) {
 		for i := 0; i < int(stationCount); i++ {
@@ -55,10 +55,10 @@ func TestParseBandwithUsed(t *testing.T) {
 }
 
 func TestStationStatus_ParseAssocList(t *testing.T) {
-	var status stationStatus
+	var status StationStatus
 
 	status.parseAssocList("")
-	assert.Equal(t, stationStatus{}, status)
+	assert.Equal(t, StationStatus{}, status)
 
 	// MAC address is invalid.
 	response := "00:00:00:00:00:00  -53 dBm / -95 dBm (SNR 42)  0 ms ago\n" +
@@ -66,7 +66,7 @@ func TestStationStatus_ParseAssocList(t *testing.T) {
 		"\tTX: 550.6 MBit/s                                   0 Pkts.\n" +
 		"\texpected throughput: unknown"
 	status.parseAssocList(response)
-	assert.Equal(t, stationStatus{}, status)
+	assert.Equal(t, StationStatus{}, status)
 
 	// Link is valid.
 	response = "48:DA:35:B0:00:CF  -53 dBm / -95 dBm (SNR 42)  0 ms ago\n" +
@@ -75,7 +75,7 @@ func TestStationStatus_ParseAssocList(t *testing.T) {
 		"\texpected throughput: unknown"
 	status.parseAssocList(response)
 	assert.Equal(
-		t, stationStatus{IsRobotRadioLinked: true, RxRateMbps: 550.6, TxRateMbps: 254.0, SignalNoiseRatio: 42}, status,
+		t, StationStatus{IsRobotRadioLinked: true, RxRateMbps: 550.6, TxRateMbps: 254.0, SignalNoiseRatio: 42}, status,
 	)
 	response = "48:DA:35:B0:00:CF  -53 dBm / -95 dBm (SNR 7)  4000 ms ago\n" +
 		"\tRX: 123.4 MBit/s                                4095 Pkts.\n" +
@@ -83,7 +83,7 @@ func TestStationStatus_ParseAssocList(t *testing.T) {
 		"\texpected throughput: unknown"
 	status.parseAssocList(response)
 	assert.Equal(
-		t, stationStatus{IsRobotRadioLinked: true, RxRateMbps: 123.4, TxRateMbps: 550.6, SignalNoiseRatio: 7}, status,
+		t, StationStatus{IsRobotRadioLinked: true, RxRateMbps: 123.4, TxRateMbps: 550.6, SignalNoiseRatio: 7}, status,
 	)
 
 	// Link is stale.
@@ -92,7 +92,7 @@ func TestStationStatus_ParseAssocList(t *testing.T) {
 		"\tTX: 550.6 MBit/s                                   0 Pkts.\n" +
 		"\texpected throughput: unknown"
 	status.parseAssocList(response)
-	assert.Equal(t, stationStatus{}, status)
+	assert.Equal(t, StationStatus{}, status)
 
 	// Response also includes BTU information.
 	response = "[ 1687496917, 26097, 177, 70454, 846 ],\n" +
@@ -108,7 +108,7 @@ func TestStationStatus_ParseAssocList(t *testing.T) {
 		"\texpected throughput: unknown"
 	status.parseAssocList(response)
 	assert.Equal(
-		t, stationStatus{IsRobotRadioLinked: true, RxRateMbps: 619.4, TxRateMbps: 550.6, SignalNoiseRatio: 43}, status,
+		t, StationStatus{IsRobotRadioLinked: true, RxRateMbps: 619.4, TxRateMbps: 550.6, SignalNoiseRatio: 43}, status,
 	)
 	response = "[ 1687496917, 26097, 177, 70454, 846 ],\n" +
 		"[ 1687496919, 26097, 177, 70454, 846 ],\n" +
@@ -122,5 +122,5 @@ func TestStationStatus_ParseAssocList(t *testing.T) {
 		"\tTX: 550.6 MBit/s                                   0 Pkts.\n" +
 		"\texpected throughput: unknown"
 	status.parseAssocList(response)
-	assert.Equal(t, stationStatus{}, status)
+	assert.Equal(t, StationStatus{}, status)
 }

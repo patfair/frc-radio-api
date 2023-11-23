@@ -1,18 +1,19 @@
-package main
+package web
 
 import (
 	"encoding/json"
+	"github.com/patfair/frc-radio-api/radio"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestWeb_statusHandler(t *testing.T) {
-	ap := newAccessPoint()
-	web := newWeb(ap)
+	ap := radio.NewAccessPoint()
+	web := NewWebServer(ap)
 
 	ap.Channel = 136
-	ap.Status = statusActive
-	ap.StationStatuses[blue1.String()] = &stationStatus{
+	ap.Status = "ACTIVE"
+	ap.StationStatuses["blue1"] = &radio.StationStatus{
 		Ssid:               "254",
 		HashedWpaKey:       "foo",
 		WpaKeySalt:         "bar",
@@ -26,7 +27,7 @@ func TestWeb_statusHandler(t *testing.T) {
 	recorder := web.getHttpResponse("/status")
 	assert.Equal(t, 200, recorder.Code)
 
-	var actualAp accessPoint
+	var actualAp radio.AccessPoint
 	assert.Nil(t, json.Unmarshal(recorder.Body.Bytes(), &actualAp))
 	assert.Equal(t, ap.Status, actualAp.Status)
 	assert.Equal(t, ap.Status, actualAp.Status)

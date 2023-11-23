@@ -1,8 +1,9 @@
-package main
+package web
 
 import (
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/patfair/frc-radio-api/radio"
 	"log"
 	"net"
 	"net/http"
@@ -11,18 +12,18 @@ import (
 
 const port = 8081
 
-// web holds shared state across requests to the web server.
-type web struct {
-	accessPoint *accessPoint
+// WebServer holds shared state across requests to the web server.
+type WebServer struct {
+	accessPoint *radio.AccessPoint
 }
 
-// newWeb creates a new web instance.
-func newWeb(accessPoint *accessPoint) *web {
-	return &web{accessPoint: accessPoint}
+// NewWebServer creates a new WebServer instance.
+func NewWebServer(accessPoint *radio.AccessPoint) *WebServer {
+	return &WebServer{accessPoint: accessPoint}
 }
 
-// run starts the HTTP server and blocks until the process terminates, serving requests.
-func (web *web) run() {
+// Run starts the HTTP server and blocks until the process terminates, serving requests.
+func (web *WebServer) Run() {
 	ipAddress, err := getVlan100IpAddress()
 	if err != nil {
 		log.Fatalf("error: %v", err)
@@ -36,7 +37,7 @@ func (web *web) run() {
 }
 
 // newRouter sets up the mapping between URLs and handlers.
-func (web *web) newRouter() http.Handler {
+func (web *WebServer) newRouter() http.Handler {
 	router := mux.NewRouter()
 	router.HandleFunc("/", web.rootHandler).Methods("GET")
 	router.HandleFunc("/health", web.healthHandler).Methods("GET")
@@ -46,12 +47,12 @@ func (web *web) newRouter() http.Handler {
 }
 
 // rootHandler redirects the root URL to the status page.
-func (web *web) rootHandler(w http.ResponseWriter, r *http.Request) {
+func (web *WebServer) rootHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/status", http.StatusFound)
 }
 
 // healthHandler returns a simple "OK" response to indicate that the server is running.
-func (web *web) healthHandler(w http.ResponseWriter, r *http.Request) {
+func (web *WebServer) healthHandler(w http.ResponseWriter, r *http.Request) {
 	_, _ = fmt.Fprintln(w, "OK")
 }
 

@@ -1,0 +1,37 @@
+package web
+
+import (
+	"encoding/json"
+	"fmt"
+	"github.com/patfair/frc-radio-api/radio"
+	"log"
+	"net/http"
+	"reflect"
+)
+
+// configurationHandler receives a JSON request to configure the access point and adds it to the asynchronous queue.
+func (web *WebServer) configurationHandler(w http.ResponseWriter, r *http.Request) {
+	var request radio.ConfigurationRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		errorMessage := "Error: invalid JSON: " + err.Error()
+		log.Println(errorMessage)
+		http.Error(w, errorMessage, http.StatusBadRequest)
+		return
+	}
+	if reflect.DeepEqual(request, radio.ConfigurationRequest{}) {
+		errorMessage := "Error: received empty configuration request"
+		log.Println(errorMessage)
+		http.Error(w, errorMessage, http.StatusBadRequest)
+		return
+	}
+	if err := request.Validate(web.accessPoint.Type); err != nil {
+		errorMessage := "Error: " + err.Error()
+		log.Println(errorMessage)
+		http.Error(w, errorMessage, http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("Received configuration request: %+v", request)
+	web.accessPoint.ConfigurationRequestChannel <- request
+	_, _ = fmt.Fprintln(w, "New configuration received and will be applied asynchronously.")
+}
