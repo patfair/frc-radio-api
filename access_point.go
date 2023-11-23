@@ -25,6 +25,7 @@ const (
 
 // accessPoint holds the current state of the access point's configuration and any robot radios connected to it.
 type accessPoint struct {
+	Channel                     int                       `json:"channel"`
 	Status                      accessPointStatus         `json:"status"`
 	StationStatuses             map[string]*stationStatus `json:"stationStatuses"`
 	hardwareType                accessPointType
@@ -129,6 +130,10 @@ func newAccessPoint() *accessPoint {
 // run loops indefinitely, handling configuration requests and polling the Wi-Fi status.
 func (ap *accessPoint) run() {
 	ap.waitForStartup()
+
+	// Initialize the in-memory state to match the access point's current configuration.
+	channel, _ := uci.GetLast("wireless", ap.device, "channel")
+	ap.Channel, _ = strconv.Atoi(channel)
 	_ = ap.updateStationStatuses()
 	ap.Status = statusActive
 
@@ -184,6 +189,7 @@ func (ap *accessPoint) waitForStartup() {
 func (ap *accessPoint) configure(request configurationRequest) {
 	if request.Channel > 0 {
 		uci.Set("wireless", ap.device, "channel", strconv.Itoa(request.Channel))
+		ap.Channel = request.Channel
 	}
 
 	if ap.hardwareType == typeLinksys {

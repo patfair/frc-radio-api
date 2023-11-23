@@ -10,6 +10,7 @@ func TestWeb_statusHandler(t *testing.T) {
 	ap := newAccessPoint()
 	web := newWeb(ap)
 
+	ap.Channel = 136
 	ap.Status = statusActive
 	ap.StationStatuses[blue1.String()] = &stationStatus{
 		Ssid:               "254",
@@ -27,6 +28,7 @@ func TestWeb_statusHandler(t *testing.T) {
 
 	var actualAp accessPoint
 	assert.Nil(t, json.Unmarshal(recorder.Body.Bytes(), &actualAp))
+	assert.Equal(t, ap.Status, actualAp.Status)
 	assert.Equal(t, ap.Status, actualAp.Status)
 	assert.Equal(t, ap.StationStatuses, actualAp.StationStatuses)
 }
