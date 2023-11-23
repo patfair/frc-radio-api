@@ -21,6 +21,7 @@ const (
 	linksysWifiReloadBackoffSec    = 5
 	saltCharacters                 = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	saltLength                     = 16
+	monitoringErrorCode            = -999
 )
 
 // accessPoint holds the current state of the access point's configuration and any robot radios connected to it.
@@ -153,8 +154,7 @@ func (ap *accessPoint) run() {
 				ap.Status = statusActive
 			}
 		case <-time.After(time.Second * statusPollIntervalSec):
-			//ap.updateTeamWifiStatuses()
-			//ap.updateTeamWifiBTU()
+			ap.updateStationMonitoring()
 		}
 	}
 }
@@ -249,7 +249,8 @@ func (ap *accessPoint) configureStations(stationConfigurations map[string]statio
 	}
 }
 
-// updateStationStatuses fetches the current Wi-Fi status (SSIDs, WPA keys, etc.) and updates the in-memory state.
+// updateStationStatuses fetches the current Wi-Fi status (SSID, WPA key, etc.) for each team station and updates the
+// in-memory state.
 func (ap *accessPoint) updateStationStatuses() error {
 	for station, stationInterface := range ap.stationInterfaces {
 		byteOutput, err := exec.Command("iwinfo", stationInterface, "info").Output()
@@ -316,4 +317,80 @@ func getHashedWpaKeyAndSalt(station station) (string, string) {
 	hashedWpaKey := hex.EncodeToString(hash.Sum(nil))
 
 	return hashedWpaKey, salt
+}
+
+// updateStationMonitoring polls the access point for the current bandwidth usage and link state of each team station
+// and updates the in-memory state.
+func (ap *accessPoint) updateStationMonitoring() {
+	for station, stationInterface := range ap.stationInterfaces {
+		stationStatus := ap.StationStatuses[station.String()]
+		if stationStatus == nil {
+			// Skip stations that don't have a team assigned.
+			continue
+		}
+
+		outputBytes, err := exec.Command("luci-bwc", "-i", stationInterface).Output()
+		if err != nil {
+			log.Printf("Error running 'luci-bwc -i %s': %v", stationInterface, err)
+			stationStatus.BandwidthUsedMbps = monitoringErrorCode
+		} else {
+			stationStatus.BandwidthUsedMbps = parseBandwidthUsed(string(outputBytes))
+		}
+		outputBytes, err = exec.Command("iwinfo", stationInterface, "assoclist").Output()
+		if err != nil {
+			log.Printf("Error running 'iwinfo %s assoclist': %v", stationInterface, err)
+			stationStatus.RxRateMbps = monitoringErrorCode
+			stationStatus.TxRateMbps = monitoringErrorCode
+			stationStatus.SignalNoiseRatio = monitoringErrorCode
+		} else {
+			stationStatus.parseAssocList(string(outputBytes))
+		}
+	}
+}
+
+// parseBandwidthUsed parses the given data from the access point's onboard bandwidth monitor and returns five-second
+// average bandwidth in megabits per second.
+func parseBandwidthUsed(response string) float64 {
+	mBits := 0.0
+	btuRe := regexp.MustCompile("\\[ (\\d+), (\\d+), (\\d+), (\\d+), (\\d+) ]")
+	btuMatches := btuRe.FindAllStringSubmatch(response, -1)
+	if len(btuMatches) >= 7 {
+		firstMatch := btuMatches[len(btuMatches)-6]
+		lastMatch := btuMatches[len(btuMatches)-1]
+		rXBytes, _ := strconv.Atoi(lastMatch[2])
+		tXBytes, _ := strconv.Atoi(lastMatch[4])
+		rXBytesOld, _ := strconv.Atoi(firstMatch[2])
+		tXBytesOld, _ := strconv.Atoi(firstMatch[4])
+		mBits = float64(rXBytes-rXBytesOld+tXBytes-tXBytesOld) * 0.000008 / 5.0
+	}
+	return mBits
+}
+
+// Parses the given data from the access point's association list and updates the status structure with the result.
+func (status *stationStatus) parseAssocList(response string) {
+	radioLinkRe := regexp.MustCompile("((?:[0-9A-F]{2}:){5}(?:[0-9A-F]{2})).*\\(SNR (\\d+)\\)\\s+(\\d+) ms ago")
+	rxRateRe := regexp.MustCompile("RX:\\s+(\\d+\\.\\d+)\\s+MBit/s")
+	txRateRe := regexp.MustCompile("TX:\\s+(\\d+\\.\\d+)\\s+MBit/s")
+
+	status.IsRobotRadioLinked = false
+	status.RxRateMbps = 0
+	status.TxRateMbps = 0
+	status.SignalNoiseRatio = 0
+	for _, radioLinkMatch := range radioLinkRe.FindAllStringSubmatch(response, -1) {
+		macAddress := radioLinkMatch[1]
+		dataAgeMs, _ := strconv.Atoi(radioLinkMatch[3])
+		if macAddress != "00:00:00:00:00:00" && dataAgeMs <= 4000 {
+			status.IsRobotRadioLinked = true
+			status.SignalNoiseRatio, _ = strconv.Atoi(radioLinkMatch[2])
+			rxRateMatch := rxRateRe.FindStringSubmatch(response)
+			if len(rxRateMatch) > 0 {
+				status.RxRateMbps, _ = strconv.ParseFloat(rxRateMatch[1], 64)
+			}
+			txRateMatch := txRateRe.FindStringSubmatch(response)
+			if len(txRateMatch) > 0 {
+				status.TxRateMbps, _ = strconv.ParseFloat(txRateMatch[1], 64)
+			}
+			break
+		}
+	}
 }
