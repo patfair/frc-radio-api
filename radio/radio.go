@@ -159,7 +159,7 @@ func (radio *Radio) waitForStartup() {
 // configure configures the radio with the given configuration.
 func (radio *Radio) configure(request ConfigurationRequest) {
 	if request.Channel > 0 {
-		radio.uciTree.Set("wireless", radio.device, "channel", strconv.Itoa(request.Channel))
+		radio.uciTree.SetType("wireless", radio.device, "channel", uci.TypeOption, strconv.Itoa(request.Channel))
 		radio.Channel = request.Channel
 	}
 
@@ -187,10 +187,10 @@ func (radio *Radio) configureStations(stationConfigurations map[string]StationCo
 			}
 
 			wifiInterface := fmt.Sprintf("@wifi-iface[%d]", position)
-			radio.uciTree.Set("wireless", wifiInterface, "ssid", ssid)
-			radio.uciTree.Set("wireless", wifiInterface, "key", wpaKey)
+			radio.uciTree.SetType("wireless", wifiInterface, "ssid", uci.TypeOption, ssid)
+			radio.uciTree.SetType("wireless", wifiInterface, "key", uci.TypeOption, wpaKey)
 			if radio.Type == typeVividHosting {
-				radio.uciTree.Set("wireless", wifiInterface, "sae_password", wpaKey)
+				radio.uciTree.SetType("wireless", wifiInterface, "sae_password", uci.TypeOption, wpaKey)
 			}
 
 			if err := radio.uciTree.Commit(); err != nil {
