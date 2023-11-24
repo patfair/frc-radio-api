@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-// configurationHandler receives a JSON request to configure the access point and adds it to the asynchronous queue.
+// configurationHandler receives a JSON request to configure the radio and adds it to the asynchronous queue.
 func (web *WebServer) configurationHandler(w http.ResponseWriter, r *http.Request) {
 	var request radio.ConfigurationRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -17,7 +17,7 @@ func (web *WebServer) configurationHandler(w http.ResponseWriter, r *http.Reques
 		http.Error(w, errorMessage, http.StatusBadRequest)
 		return
 	}
-	if err := request.Validate(web.accessPoint.Type); err != nil {
+	if err := request.Validate(web.radio.Type); err != nil {
 		errorMessage := "Error: " + err.Error()
 		log.Println(errorMessage)
 		http.Error(w, errorMessage, http.StatusBadRequest)
@@ -25,6 +25,6 @@ func (web *WebServer) configurationHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	log.Printf("Received configuration request: %+v", request)
-	web.accessPoint.ConfigurationRequestChannel <- request
+	web.radio.ConfigurationRequestChannel <- request
 	_, _ = fmt.Fprintln(w, "New configuration received and will be applied asynchronously.")
 }

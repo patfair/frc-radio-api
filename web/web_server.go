@@ -12,12 +12,12 @@ const port = 8081
 
 // WebServer holds shared state across requests to the API.
 type WebServer struct {
-	accessPoint *radio.AccessPoint
+	radio *radio.Radio
 }
 
 // NewWebServer creates a new server instance.
-func NewWebServer(accessPoint *radio.AccessPoint) *WebServer {
-	return &WebServer{accessPoint: accessPoint}
+func NewWebServer(radio *radio.Radio) *WebServer {
+	return &WebServer{radio: radio}
 }
 
 // Run starts the HTTP server and blocks until the process terminates, serving requests.

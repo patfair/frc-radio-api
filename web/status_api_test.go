@@ -8,7 +8,7 @@ import (
 )
 
 func TestWeb_statusHandler(t *testing.T) {
-	ap := radio.NewAccessPoint()
+	ap := radio.NewRadio()
 	web := NewWebServer(ap)
 
 	ap.Channel = 136
@@ -27,7 +27,7 @@ func TestWeb_statusHandler(t *testing.T) {
 	recorder := web.getHttpResponse("/status")
 	assert.Equal(t, 200, recorder.Code)
 
-	var actualAp radio.AccessPoint
+	var actualAp radio.Radio
 	assert.Nil(t, json.Unmarshal(recorder.Body.Bytes(), &actualAp))
 	assert.Equal(t, ap.Status, actualAp.Status)
 	assert.Equal(t, ap.Status, actualAp.Status)

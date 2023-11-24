@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-// ConfigurationRequest represents a JSON request to configure the access point.
+// ConfigurationRequest represents a JSON request to configure the radio.
 type ConfigurationRequest struct {
 	Channel               int                             `json:"channel"`
 	StationConfigurations map[string]StationConfiguration `json:"stationConfigurations"`
@@ -20,7 +20,7 @@ type StationConfiguration struct {
 var validLinksysChannels = []int{36, 40, 44, 48, 149, 153, 157, 161, 165}
 
 // Validate checks that all parameters within the configuration request have valid values.
-func (request ConfigurationRequest) Validate(accessPointType accessPointType) error {
+func (request ConfigurationRequest) Validate(radioType radioType) error {
 	if request.Channel == 0 && len(request.StationConfigurations) == 0 {
 		return errors.New("empty configuration request")
 	}
@@ -28,7 +28,7 @@ func (request ConfigurationRequest) Validate(accessPointType accessPointType) er
 	if request.Channel != 0 {
 		// Validate channel number.
 		valid := false
-		switch accessPointType {
+		switch radioType {
 		case typeLinksys:
 			for _, channel := range validLinksysChannels {
 				if request.Channel == channel {
@@ -42,7 +42,7 @@ func (request ConfigurationRequest) Validate(accessPointType accessPointType) er
 			valid = y == 0 && x >= 0 && x <= 28
 		}
 		if !valid {
-			return fmt.Errorf("invalid channel for %s: %d", accessPointType.String(), request.Channel)
+			return fmt.Errorf("invalid channel for %s: %d", radioType.String(), request.Channel)
 		}
 	}
 

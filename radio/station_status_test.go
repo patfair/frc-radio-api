@@ -6,28 +6,20 @@ import (
 	"testing"
 )
 
-func TestNewAccessPoint(t *testing.T) {
-	accessPoint := NewAccessPoint()
-	assert.Equal(t, statusBooting, accessPoint.Status)
-	if assert.Equal(t, int(stationCount), len(accessPoint.StationStatuses)) {
-		for i := 0; i < int(stationCount); i++ {
-			stationStatus, ok := accessPoint.StationStatuses[station(i).String()]
-			assert.True(t, ok)
-			assert.Nil(t, stationStatus)
-		}
-	}
-}
+func TestStationStatus_ParseBandwithUsed(t *testing.T) {
+	var status StationStatus
 
-func TestParseBandwithUsed(t *testing.T) {
 	// Response is too short.
-	assert.Equal(t, 0.0, parseBandwidthUsed(""))
+	status.parseBandwidthUsed("")
+	assert.Equal(t, 0.0, status.BandwidthUsedMbps)
 	response := "[ 1687496957, 26097, 177, 71670, 865 ],\n" +
 		"[ 1687496958, 26097, 177, 71734, 866 ],\n" +
 		"[ 1687496959, 26097, 177, 71734, 866 ],\n" +
 		"[ 1687496960, 26097, 177, 71798, 867 ],\n" +
 		"[ 1687496960, 26097, 177, 71798, 867 ],\n" +
 		"[ 1687496961, 26097, 177, 71798, 867 ]"
-	assert.Equal(t, 0.0, parseBandwidthUsed(response))
+	status.parseBandwidthUsed(response)
+	assert.Equal(t, 0.0, status.BandwidthUsedMbps)
 
 	// Response is normal.
 	response = "[ 1687496917, 26097, 177, 70454, 846 ],\n" +
@@ -37,7 +29,8 @@ func TestParseBandwithUsed(t *testing.T) {
 		"[ 1687496921, 26097, 177, 70582, 848 ],\n" +
 		"[ 1687496922, 26097, 177, 70582, 848 ],\n" +
 		"[ 1687496923, 2609700, 177, 7064600, 849 ]"
-	assert.Equal(t, 15.0, math.Floor(parseBandwidthUsed(response)))
+	status.parseBandwidthUsed(response)
+	assert.Equal(t, 15.0, math.Floor(status.BandwidthUsedMbps))
 
 	// Response also includes associated client information.
 	response = "[ 1687496917, 26097, 177, 70454, 846 ],\n" +
@@ -51,7 +44,8 @@ func TestParseBandwithUsed(t *testing.T) {
 		"\tRX: 619.4 MBit/s                                4095 Pkts.\n" +
 		"\tTX: 550.6 MBit/s                                   0 Pkts.\n" +
 		"\texpected throughput: unknown"
-	assert.Equal(t, 15.0, math.Floor(parseBandwidthUsed(response)))
+	status.parseBandwidthUsed(response)
+	assert.Equal(t, 15.0, math.Floor(status.BandwidthUsedMbps))
 }
 
 func TestStationStatus_ParseAssocList(t *testing.T) {

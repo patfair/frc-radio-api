@@ -20,12 +20,12 @@ func main() {
 	}
 	log.Println("Starting FRC Radio API...")
 
-	ap := radio.NewAccessPoint()
+	radio := radio.NewRadio()
 
 	// Launch the web server in a separate thread.
-	webServer := web.NewWebServer(ap)
+	webServer := web.NewWebServer(radio)
 	go webServer.Run()
 
-	// Run the access point loop in the main thread.
-	ap.Run()
+	// Run the radio event loop in the main thread.
+	radio.Run()
 }

@@ -7,7 +7,7 @@ import (
 )
 
 func TestWeb_configurationHandler(t *testing.T) {
-	ap := radio.NewAccessPoint()
+	ap := radio.NewRadio()
 	web := NewWebServer(ap)
 
 	// Empty request should result in an error.
@@ -76,7 +76,7 @@ func TestWeb_configurationHandler(t *testing.T) {
 }
 
 func TestWeb_configurationHandlerInvalidInput(t *testing.T) {
-	ap := radio.NewAccessPoint()
+	ap := radio.NewRadio()
 	web := NewWebServer(ap)
 
 	// Invalid JSON.

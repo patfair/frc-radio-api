@@ -5,9 +5,9 @@ import (
 	"net/http"
 )
 
-// statusHandler returns a JSON dump of the access point status.
+// statusHandler returns a JSON dump of the radio status.
 func (web *WebServer) statusHandler(w http.ResponseWriter, r *http.Request) {
-	jsonData, err := json.MarshalIndent(web.accessPoint, "", "  ")
+	jsonData, err := json.MarshalIndent(web.radio, "", "  ")
 	if err != nil {
 		handleWebErr(w, err)
 		return
