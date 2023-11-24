@@ -33,7 +33,6 @@ type Radio struct {
 	ConfigurationRequestChannel chan ConfigurationRequest `json:"-"`
 	device                      string
 	stationInterfaces           map[station]string
-	uciTree                     uci.Tree
 }
 
 // radioType represents the hardware type of the radio.
@@ -57,6 +56,7 @@ const (
 	statusError                   = "ERROR"
 )
 
+var uciTree = uci.NewTree(uci.DefaultTreePath)
 var ssidRe = regexp.MustCompile("ESSID: \"([-\\w ]*)\"")
 
 // NewRadio creates a new Radio instance and initializes its fields to default values.
@@ -64,7 +64,6 @@ func NewRadio() *Radio {
 	radio := Radio{
 		Status:                      statusBooting,
 		ConfigurationRequestChannel: make(chan ConfigurationRequest, configurationRequestBufferSize),
-		uciTree:                     uci.NewTree(uci.DefaultTreePath),
 	}
 	radio.determineAndSetType()
 	if radio.Type == typeUnknown {
@@ -108,7 +107,7 @@ func (radio *Radio) Run() {
 	radio.waitForStartup()
 
 	// Initialize the in-memory state to match the radio's current configuration.
-	channel, _ := radio.uciTree.GetLast("wireless", radio.device, "channel")
+	channel, _ := uciTree.GetLast("wireless", radio.device, "channel")
 	radio.Channel, _ = strconv.Atoi(channel)
 	_ = radio.updateStationStatuses()
 	radio.Status = statusActive
@@ -124,8 +123,10 @@ func (radio *Radio) Run() {
 			}
 			radio.Status = statusConfiguring
 			log.Printf("Processing configuration request: %+v", request)
-			radio.configure(request)
-			if len(radio.ConfigurationRequestChannel) == 0 {
+			if err := radio.configure(request); err != nil {
+				log.Printf("Error configuring radio: %v", err)
+				radio.Status = statusError
+			} else if len(radio.ConfigurationRequestChannel) == 0 {
 				radio.Status = statusActive
 			}
 		case <-time.After(time.Second * statusPollIntervalSec):
@@ -136,7 +137,7 @@ func (radio *Radio) Run() {
 
 // determineAndSetType determines the model of the radio.
 func (radio *Radio) determineAndSetType() {
-	model, _ := radio.uciTree.GetLast("system", "@system[0]", "model")
+	model, _ := uciTree.GetLast("system", "@system[0]", "model")
 	if strings.Contains(model, "VH") {
 		radio.Type = typeVividHosting
 	} else {
@@ -157,21 +158,23 @@ func (radio *Radio) waitForStartup() {
 }
 
 // configure configures the radio with the given configuration.
-func (radio *Radio) configure(request ConfigurationRequest) {
+func (radio *Radio) configure(request ConfigurationRequest) error {
 	if request.Channel > 0 {
-		radio.uciTree.SetType("wireless", radio.device, "channel", uci.TypeOption, strconv.Itoa(request.Channel))
+		uciTree.SetType("wireless", radio.device, "channel", uci.TypeOption, strconv.Itoa(request.Channel))
 		radio.Channel = request.Channel
 	}
 
 	if radio.Type == typeLinksys {
 		// Clear the state of the radio before loading teams; the Linksys AP is crash-prone otherwise.
-		radio.configureStations(map[string]StationConfiguration{})
+		if err := radio.configureStations(map[string]StationConfiguration{}); err != nil {
+			return err
+		}
 	}
-	radio.configureStations(request.StationConfigurations)
+	return radio.configureStations(request.StationConfigurations)
 }
 
 // configureStations configures the access point with the given team station configurations.
-func (radio *Radio) configureStations(stationConfigurations map[string]StationConfiguration) {
+func (radio *Radio) configureStations(stationConfigurations map[string]StationConfiguration) error {
 	retryCount := 1
 
 	for {
@@ -187,19 +190,19 @@ func (radio *Radio) configureStations(stationConfigurations map[string]StationCo
 			}
 
 			wifiInterface := fmt.Sprintf("@wifi-iface[%d]", position)
-			radio.uciTree.SetType("wireless", wifiInterface, "ssid", uci.TypeOption, ssid)
-			radio.uciTree.SetType("wireless", wifiInterface, "key", uci.TypeOption, wpaKey)
+			uciTree.SetType("wireless", wifiInterface, "ssid", uci.TypeOption, ssid)
+			uciTree.SetType("wireless", wifiInterface, "key", uci.TypeOption, wpaKey)
 			if radio.Type == typeVividHosting {
-				radio.uciTree.SetType("wireless", wifiInterface, "sae_password", uci.TypeOption, wpaKey)
+				uciTree.SetType("wireless", wifiInterface, "sae_password", uci.TypeOption, wpaKey)
 			}
 
-			if err := radio.uciTree.Commit(); err != nil {
-				log.Printf("Failed to commit wireless configuration: %v", err)
+			if err := uciTree.Commit(); err != nil {
+				return fmt.Errorf("failed to commit wireless configuration: %v", err)
 			}
 		}
 
 		if err := exec.Command("wifi", "reload", radio.device).Run(); err != nil {
-			log.Printf("Failed to reload configuration for device %s: %v", radio.device, err)
+			return fmt.Errorf("failed to reload configuration for device %s: %v", radio.device, err)
 		}
 
 		if radio.Type == typeLinksys {
@@ -209,7 +212,7 @@ func (radio *Radio) configureStations(stationConfigurations map[string]StationCo
 		}
 		err := radio.updateStationStatuses()
 		if err != nil {
-			log.Printf("Error updating station statuses: %v", err)
+			return fmt.Errorf("error updating station statuses: %v", err)
 		} else if radio.stationSsidsAreCorrect(stationConfigurations) {
 			log.Printf("Successfully configured Wi-Fi after %d attempts.", retryCount)
 			break
@@ -218,6 +221,8 @@ func (radio *Radio) configureStations(stationConfigurations map[string]StationCo
 		log.Printf("Wi-Fi configuration still incorrect after %d attempts; trying again.", retryCount)
 		retryCount++
 	}
+
+	return nil
 }
 
 // updateStationStatuses fetches the current Wi-Fi status (SSID, WPA key, etc.) for each team station and updates the
@@ -273,7 +278,7 @@ func (radio *Radio) stationSsidsAreCorrect(stationConfigurations map[string]Stat
 // getHashedWpaKeyAndSalt fetches the WPA key for the given station and returns its hashed value and the salt used for
 // hashing.
 func (radio *Radio) getHashedWpaKeyAndSalt(station station) (string, string) {
-	wpaKey, ok := radio.uciTree.GetLast("wireless", fmt.Sprintf("@wifi-iface[%d]", station+1), "key")
+	wpaKey, ok := uciTree.GetLast("wireless", fmt.Sprintf("@wifi-iface[%d]", station+1), "key")
 	if !ok {
 		return "", ""
 	}
