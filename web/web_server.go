@@ -5,19 +5,17 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/patfair/frc-radio-api/radio"
 	"log"
-	"net"
 	"net/http"
-	"regexp"
 )
 
 const port = 8081
 
-// WebServer holds shared state across requests to the web server.
+// WebServer holds shared state across requests to the API.
 type WebServer struct {
 	accessPoint *radio.AccessPoint
 }
 
-// NewWebServer creates a new WebServer instance.
+// NewWebServer creates a new server instance.
 func NewWebServer(accessPoint *radio.AccessPoint) *WebServer {
 	return &WebServer{accessPoint: accessPoint}
 }
@@ -54,33 +52,4 @@ func (web *WebServer) rootHandler(w http.ResponseWriter, r *http.Request) {
 // healthHandler returns a simple "OK" response to indicate that the server is running.
 func (web *WebServer) healthHandler(w http.ResponseWriter, r *http.Request) {
 	_, _ = fmt.Fprintln(w, "OK")
-}
-
-// handleWebErr writes the given error out as plain text with a status code of 500.
-func handleWebErr(w http.ResponseWriter, err error) {
-	log.Printf("HTTP request error: %v", err)
-	http.Error(w, "Internal server error: "+err.Error(), 500)
-}
-
-// getVlan100IpAddress returns the IP address of the first interface that has an IP address on the 10.0.100.x VLAN.
-func getVlan100IpAddress() (string, error) {
-	ipRe := regexp.MustCompile("^(10\\.0\\.100\\.\\d+)")
-	ifaces, err := net.Interfaces()
-	if err != nil {
-		return "", err
-	}
-	for _, iface := range ifaces {
-		addrs, err := iface.Addrs()
-		if err != nil {
-			return "", err
-		}
-		for _, addr := range addrs {
-			address := addr.String()
-			matches := ipRe.FindStringSubmatch(address)
-			if len(matches) != 0 {
-				return matches[1], nil
-			}
-		}
-	}
-	return "", fmt.Errorf("no IP address found on VLAN 100 (i.e. matching %v)", ipRe)
 }

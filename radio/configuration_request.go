@@ -1,6 +1,9 @@
 package radio
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 // ConfigurationRequest represents a JSON request to configure the access point.
 type ConfigurationRequest struct {
@@ -18,6 +21,10 @@ var validLinksysChannels = []int{36, 40, 44, 48, 149, 153, 157, 161, 165}
 
 // Validate checks that all parameters within the configuration request have valid values.
 func (request ConfigurationRequest) Validate(accessPointType accessPointType) error {
+	if request.Channel == 0 && len(request.StationConfigurations) == 0 {
+		return errors.New("empty configuration request")
+	}
+
 	if request.Channel != 0 {
 		// Validate channel number.
 		valid := false

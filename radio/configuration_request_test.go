@@ -6,9 +6,14 @@ import (
 )
 
 func TestConfigurationRequest_Validate(t *testing.T) {
-	// Invalid 5GHz channel.
-	request := ConfigurationRequest{Channel: 5}
+	// Empty request.
+	request := ConfigurationRequest{}
 	err := request.Validate(typeLinksys)
+	assert.EqualError(t, err, "empty configuration request")
+
+	// Invalid 5GHz channel.
+	request.Channel = 5
+	err = request.Validate(typeLinksys)
 	assert.EqualError(t, err, "invalid channel for typeLinksys: 5")
 
 	// Invalid 6GHz channel.

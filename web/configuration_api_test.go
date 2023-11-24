@@ -85,11 +85,9 @@ func TestWeb_configurationHandlerInvalidInput(t *testing.T) {
 	assert.Contains(t, recorder.Body.String(), "invalid JSON")
 	assert.Equal(t, 0, len(ap.ConfigurationRequestChannel))
 
-	// Invalid station.
-	recorder = web.postHttpResponse(
-		"/configuration", `{"stationConfigurations": {"red4": {"ssid": "254", "wpaKey": "12345678"}}}`,
-	)
+	// Empty request.
+	recorder = web.postHttpResponse("/configuration", "{}")
 	assert.Equal(t, 400, recorder.Code)
-	assert.Contains(t, recorder.Body.String(), "invalid station: red4")
+	assert.Contains(t, recorder.Body.String(), "empty configuration request")
 	assert.Equal(t, 0, len(ap.ConfigurationRequestChannel))
 }
