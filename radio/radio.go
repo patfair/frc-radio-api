@@ -7,7 +7,6 @@ import (
 	"github.com/digineo/go-uci"
 	"log"
 	"math/rand"
-	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
@@ -57,6 +56,7 @@ const (
 )
 
 var uciTree = uci.NewTree(uci.DefaultTreePath)
+var shell shellWrapper = execShell{}
 var ssidRe = regexp.MustCompile("ESSID: \"([-\\w ]*)\"")
 
 // NewRadio creates a new Radio instance and initializes its fields to default values.
@@ -104,7 +104,11 @@ func NewRadio() *Radio {
 
 // Run loops indefinitely, handling configuration requests and polling the Wi-Fi status.
 func (radio *Radio) Run() {
-	radio.waitForStartup()
+	for !radio.isStarted() {
+		log.Println("Waiting for radio to finish starting up...")
+		time.Sleep(bootPollIntervalSec * time.Second)
+	}
+	log.Println("Radio ready with baseline Wi-Fi configuration.")
 
 	// Initialize the in-memory state to match the radio's current configuration.
 	channel, _ := uciTree.GetLast("wireless", radio.device, "channel")
@@ -145,16 +149,10 @@ func (radio *Radio) determineAndSetType() {
 	}
 }
 
-// waitForStartup polls the Wi-Fi status and blocks until the radio has finished booting.
-func (radio *Radio) waitForStartup() {
-	for {
-		if err := exec.Command("iwinfo", radio.stationInterfaces[red1], "info").Run(); err == nil {
-			log.Println("Radio ready with baseline Wi-Fi configuration.")
-			return
-		}
-		log.Println("Waiting for radio to finish starting up...")
-		time.Sleep(bootPollIntervalSec * time.Second)
-	}
+// isStarted returns true if the Wi-Fi interface is up and running.
+func (radio *Radio) isStarted() bool {
+	_, err := shell.runCommand("iwinfo", radio.stationInterfaces[blue3], "info")
+	return err == nil
 }
 
 // configure configures the radio with the given configuration.
@@ -201,7 +199,7 @@ func (radio *Radio) configureStations(stationConfigurations map[string]StationCo
 			}
 		}
 
-		if err := exec.Command("wifi", "reload", radio.device).Run(); err != nil {
+		if _, err := shell.runCommand("wifi", "reload", radio.device); err != nil {
 			return fmt.Errorf("failed to reload configuration for device %s: %v", radio.device, err)
 		}
 
@@ -229,12 +227,12 @@ func (radio *Radio) configureStations(stationConfigurations map[string]StationCo
 // in-memory state.
 func (radio *Radio) updateStationStatuses() error {
 	for station, stationInterface := range radio.stationInterfaces {
-		byteOutput, err := exec.Command("iwinfo", stationInterface, "info").Output()
-		fmt.Printf("Output for iwinfo %s info: %s\n", stationInterface, string(byteOutput))
+		output, err := shell.runCommand("iwinfo", stationInterface, "info")
+		fmt.Printf("Output for iwinfo %s info: %s\n", stationInterface, output)
 		if err != nil {
 			return fmt.Errorf("error getting iwinfo for interface %s from AP: %v", stationInterface, err)
 		} else {
-			matches := ssidRe.FindStringSubmatch(string(byteOutput))
+			matches := ssidRe.FindStringSubmatch(output)
 			if len(matches) > 0 {
 				ssid := matches[1]
 				if strings.HasPrefix(ssid, "no-team-") {
@@ -247,7 +245,7 @@ func (radio *Radio) updateStationStatuses() error {
 				}
 			} else {
 				return fmt.Errorf(
-					"error parsing iwinfo output for interface %s from AP: \n%s", stationInterface, string(byteOutput),
+					"error parsing iwinfo output for interface %s from AP: \n%s", stationInterface, output,
 				)
 			}
 		}
@@ -305,21 +303,21 @@ func (radio *Radio) updateStationMonitoring() {
 			continue
 		}
 
-		outputBytes, err := exec.Command("luci-bwc", "-i", stationInterface).Output()
+		output, err := shell.runCommand("luci-bwc", "-i", stationInterface)
 		if err != nil {
 			log.Printf("Error running 'luci-bwc -i %s': %v", stationInterface, err)
 			stationStatus.BandwidthUsedMbps = monitoringErrorCode
 		} else {
-			stationStatus.parseBandwidthUsed(string(outputBytes))
+			stationStatus.parseBandwidthUsed(output)
 		}
-		outputBytes, err = exec.Command("iwinfo", stationInterface, "assoclist").Output()
+		output, err = shell.runCommand("iwinfo", stationInterface, "assoclist")
 		if err != nil {
 			log.Printf("Error running 'iwinfo %s assoclist': %v", stationInterface, err)
 			stationStatus.RxRateMbps = monitoringErrorCode
 			stationStatus.TxRateMbps = monitoringErrorCode
 			stationStatus.SignalNoiseRatio = monitoringErrorCode
 		} else {
-			stationStatus.parseAssocList(string(outputBytes))
+			stationStatus.parseAssocList(output)
 		}
 	}
 }

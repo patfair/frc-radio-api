@@ -1,16 +1,17 @@
 package radio
 
 import (
+	"errors"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestNewRadio(t *testing.T) {
-	var tree fakeUciTree
-	uciTree = &tree
+	var fakeTree fakeUciTree
+	uciTree = &fakeTree
 
 	// Using Vivid-Hosting radio.
-	tree.valuesForGet = map[string]string{"system.@system[0].model": "VH-109(AP)"}
+	fakeTree.valuesForGet = map[string]string{"system.@system[0].model": "VH-109(AP)"}
 	radio := NewRadio()
 	assert.Equal(t, 0, radio.Channel)
 	assert.Equal(t, statusBooting, radio.Status)
@@ -38,7 +39,7 @@ func TestNewRadio(t *testing.T) {
 	)
 
 	// Using Linksys radio.
-	tree.valuesForGet["system.@system[0].model"] = ""
+	fakeTree.valuesForGet["system.@system[0].model"] = ""
 	radio = NewRadio()
 	assert.Equal(t, 0, radio.Channel)
 	assert.Equal(t, statusBooting, radio.Status)
@@ -64,4 +65,23 @@ func TestNewRadio(t *testing.T) {
 		},
 		radio.stationInterfaces,
 	)
+}
+
+func TestRadio_isStarted(t *testing.T) {
+	fakeShell := newFakeShell(t)
+	shell = fakeShell
+	radio := NewRadio()
+
+	// Radio is not started.
+	fakeShell.commandErrors["iwinfo wlan0-5 info"] = errors.New("failed")
+	assert.False(t, radio.isStarted())
+	_, ok := fakeShell.commandsRun["iwinfo wlan0-5 info"]
+	assert.True(t, ok)
+
+	// Radio is started.
+	fakeShell.reset()
+	fakeShell.commandOutput["iwinfo wlan0-5 info"] = "some output"
+	assert.True(t, radio.isStarted())
+	_, ok = fakeShell.commandsRun["iwinfo wlan0-5 info"]
+	assert.True(t, ok)
 }
