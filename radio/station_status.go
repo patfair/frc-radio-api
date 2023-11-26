@@ -1,6 +1,7 @@
 package radio
 
 import (
+	"math"
 	"regexp"
 	"strconv"
 )
@@ -30,7 +31,7 @@ func (status *StationStatus) parseBandwidthUsed(response string) {
 		tXBytes, _ := strconv.Atoi(lastMatch[4])
 		rXBytesOld, _ := strconv.Atoi(firstMatch[2])
 		tXBytesOld, _ := strconv.Atoi(firstMatch[4])
-		status.BandwidthUsedMbps = float64(rXBytes-rXBytesOld+tXBytes-tXBytesOld) * 0.000008 / 5.0
+		status.BandwidthUsedMbps = math.Round(1000*float64(rXBytes-rXBytesOld+tXBytes-tXBytesOld)*0.000008/5.0) / 1000
 	}
 }
 

@@ -1,6 +1,7 @@
 package radio
 
 import (
+	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
 )
@@ -31,7 +32,7 @@ func (shell *fakeShell) runCommand(command string, args ...string) (string, erro
 	if err, ok := shell.commandErrors[fullCommand]; ok {
 		return "", err
 	}
-	shell.t.Error("unexpected command: " + fullCommand)
+	assert.Fail(shell.t, "unexpected command: "+fullCommand)
 	return "", nil
 }
 

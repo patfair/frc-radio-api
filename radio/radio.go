@@ -18,6 +18,7 @@ const (
 	statusPollIntervalSec          = 5
 	configurationRequestBufferSize = 10
 	linksysWifiReloadBackoffSec    = 5
+	retryBackoffSec                = 3
 	saltCharacters                 = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	saltLength                     = 16
 	monitoringErrorCode            = -999
@@ -58,6 +59,8 @@ const (
 var uciTree = uci.NewTree(uci.DefaultTreePath)
 var shell shellWrapper = execShell{}
 var ssidRe = regexp.MustCompile("ESSID: \"([-\\w ]*)\"")
+var linksysWifiReloadBackoffDuration = time.Second * linksysWifiReloadBackoffSec
+var retryBackoffDuration = time.Second * retryBackoffSec
 
 // NewRadio creates a new Radio instance and initializes its fields to default values.
 func NewRadio() *Radio {
@@ -120,19 +123,7 @@ func (radio *Radio) Run() {
 		// Check if there are any pending configuration requests; if not, periodically poll Wi-Fi status.
 		select {
 		case request := <-radio.ConfigurationRequestChannel:
-			// If there are multiple requests queued up, only consider the latest one.
-			numExtraRequests := len(radio.ConfigurationRequestChannel)
-			for i := 0; i < numExtraRequests; i++ {
-				request = <-radio.ConfigurationRequestChannel
-			}
-			radio.Status = statusConfiguring
-			log.Printf("Processing configuration request: %+v", request)
-			if err := radio.configure(request); err != nil {
-				log.Printf("Error configuring radio: %v", err)
-				radio.Status = statusError
-			} else if len(radio.ConfigurationRequestChannel) == 0 {
-				radio.Status = statusActive
-			}
+			_ = radio.handleConfigurationRequest(request)
 		case <-time.After(time.Second * statusPollIntervalSec):
 			radio.updateStationMonitoring()
 		}
@@ -155,6 +146,25 @@ func (radio *Radio) isStarted() bool {
 	return err == nil
 }
 
+func (radio *Radio) handleConfigurationRequest(request ConfigurationRequest) error {
+	// If there are multiple requests queued up, only consider the latest one.
+	numExtraRequests := len(radio.ConfigurationRequestChannel)
+	for i := 0; i < numExtraRequests; i++ {
+		request = <-radio.ConfigurationRequestChannel
+	}
+
+	radio.Status = statusConfiguring
+	log.Printf("Processing configuration request: %+v", request)
+	if err := radio.configure(request); err != nil {
+		log.Printf("Error configuring radio: %v", err)
+		radio.Status = statusError
+		return err
+	} else if len(radio.ConfigurationRequestChannel) == 0 {
+		radio.Status = statusActive
+	}
+	return nil
+}
+
 // configure configures the radio with the given configuration.
 func (radio *Radio) configure(request ConfigurationRequest) error {
 	if request.Channel > 0 {
@@ -167,6 +177,7 @@ func (radio *Radio) configure(request ConfigurationRequest) error {
 		if err := radio.configureStations(map[string]StationConfiguration{}); err != nil {
 			return err
 		}
+		time.Sleep(linksysWifiReloadBackoffDuration)
 	}
 	return radio.configureStations(request.StationConfigurations)
 }
@@ -206,7 +217,7 @@ func (radio *Radio) configureStations(stationConfigurations map[string]StationCo
 		if radio.Type == typeLinksys {
 			// The Linksys AP returns immediately after 'wifi reload' but may not have applied the configuration yet;
 			// sleep for a bit to compensate. (The Vivid AP waits for the configuration to be applied before returning.)
-			time.Sleep(time.Second * linksysWifiReloadBackoffSec)
+			time.Sleep(linksysWifiReloadBackoffDuration)
 		}
 		err := radio.updateStationStatuses()
 		if err != nil {
@@ -217,6 +228,7 @@ func (radio *Radio) configureStations(stationConfigurations map[string]StationCo
 		}
 
 		log.Printf("Wi-Fi configuration still incorrect after %d attempts; trying again.", retryCount)
+		time.Sleep(retryBackoffDuration)
 		retryCount++
 	}
 
@@ -228,9 +240,8 @@ func (radio *Radio) configureStations(stationConfigurations map[string]StationCo
 func (radio *Radio) updateStationStatuses() error {
 	for station, stationInterface := range radio.stationInterfaces {
 		output, err := shell.runCommand("iwinfo", stationInterface, "info")
-		fmt.Printf("Output for iwinfo %s info: %s\n", stationInterface, output)
 		if err != nil {
-			return fmt.Errorf("error getting iwinfo for interface %s from AP: %v", stationInterface, err)
+			return fmt.Errorf("error getting iwinfo for interface %s: %v", stationInterface, err)
 		} else {
 			matches := ssidRe.FindStringSubmatch(output)
 			if len(matches) > 0 {
@@ -245,7 +256,7 @@ func (radio *Radio) updateStationStatuses() error {
 				}
 			} else {
 				return fmt.Errorf(
-					"error parsing iwinfo output for interface %s from AP: \n%s", stationInterface, output,
+					"error parsing iwinfo output for interface %s: %s", stationInterface, output,
 				)
 			}
 		}
@@ -259,7 +270,7 @@ func (radio *Radio) updateStationStatuses() error {
 func (radio *Radio) stationSsidsAreCorrect(stationConfigurations map[string]StationConfiguration) bool {
 	for stationName, stationStatus := range radio.StationStatuses {
 		if config, ok := stationConfigurations[stationName]; ok {
-			if radio.StationStatuses[stationName].Ssid != config.Ssid {
+			if radio.StationStatuses[stationName] == nil || radio.StationStatuses[stationName].Ssid != config.Ssid {
 				return false
 			}
 		} else {

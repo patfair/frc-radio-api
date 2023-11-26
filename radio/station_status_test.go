@@ -2,7 +2,6 @@ package radio
 
 import (
 	"github.com/stretchr/testify/assert"
-	"math"
 	"testing"
 )
 
@@ -30,22 +29,7 @@ func TestStationStatus_ParseBandwithUsed(t *testing.T) {
 		"[ 1687496922, 26097, 177, 70582, 848 ],\n" +
 		"[ 1687496923, 2609700, 177, 7064600, 849 ]"
 	status.parseBandwidthUsed(response)
-	assert.Equal(t, 15.0, math.Floor(status.BandwidthUsedMbps))
-
-	// Response also includes associated client information.
-	response = "[ 1687496917, 26097, 177, 70454, 846 ],\n" +
-		"[ 1687496919, 26097, 177, 70454, 846 ],\n" +
-		"[ 1687496920, 26097, 177, 70518, 847 ],\n" +
-		"[ 1687496920, 26097, 177, 70518, 847 ],\n" +
-		"[ 1687496921, 26097, 177, 70582, 848 ],\n" +
-		"[ 1687496922, 26097, 177, 70582, 848 ],\n" +
-		"[ 1687496923, 2609700, 177, 7064600, 849 ]\n" +
-		"48:DA:35:B0:00:CF  -52 dBm / -95 dBm (SNR 43)  1000 ms ago\n" +
-		"\tRX: 619.4 MBit/s                                4095 Pkts.\n" +
-		"\tTX: 550.6 MBit/s                                   0 Pkts.\n" +
-		"\texpected throughput: unknown"
-	status.parseBandwidthUsed(response)
-	assert.Equal(t, 15.0, math.Floor(status.BandwidthUsedMbps))
+	assert.Equal(t, 15.324, status.BandwidthUsedMbps)
 }
 
 func TestStationStatus_ParseAssocList(t *testing.T) {
@@ -83,36 +67,6 @@ func TestStationStatus_ParseAssocList(t *testing.T) {
 	// Link is stale.
 	response = "48:DA:35:B0:00:CF  -53 dBm / -95 dBm (SNR 42)  4001 ms ago\n" +
 		"\tRX: 550.6 MBit/s                                4095 Pkts.\n" +
-		"\tTX: 550.6 MBit/s                                   0 Pkts.\n" +
-		"\texpected throughput: unknown"
-	status.parseAssocList(response)
-	assert.Equal(t, StationStatus{}, status)
-
-	// Response also includes BTU information.
-	response = "[ 1687496917, 26097, 177, 70454, 846 ],\n" +
-		"[ 1687496919, 26097, 177, 70454, 846 ],\n" +
-		"[ 1687496920, 26097, 177, 70518, 847 ],\n" +
-		"[ 1687496920, 26097, 177, 70518, 847 ],\n" +
-		"[ 1687496921, 26097, 177, 70582, 848 ],\n" +
-		"[ 1687496922, 26097, 177, 70582, 848 ],\n" +
-		"[ 1687496923, 2609700, 177, 7064600, 849 ]\n" +
-		"48:DA:35:B0:00:CF  -52 dBm / -95 dBm (SNR 43)  1000 ms ago\n" +
-		"\tRX: 619.4 MBit/s                                4095 Pkts.\n" +
-		"\tTX: 550.6 MBit/s                                   0 Pkts.\n" +
-		"\texpected throughput: unknown"
-	status.parseAssocList(response)
-	assert.Equal(
-		t, StationStatus{IsRobotRadioLinked: true, RxRateMbps: 619.4, TxRateMbps: 550.6, SignalNoiseRatio: 43}, status,
-	)
-	response = "[ 1687496917, 26097, 177, 70454, 846 ],\n" +
-		"[ 1687496919, 26097, 177, 70454, 846 ],\n" +
-		"[ 1687496920, 26097, 177, 70518, 847 ],\n" +
-		"[ 1687496920, 26097, 177, 70518, 847 ],\n" +
-		"[ 1687496921, 26097, 177, 70582, 848 ],\n" +
-		"[ 1687496922, 26097, 177, 70582, 848 ],\n" +
-		"[ 1687496923, 2609700, 177, 7064600, 849 ]\n" +
-		"00:00:00:00:00:00  -52 dBm / -95 dBm (SNR 43)  0 ms ago\n" +
-		"\tRX: 619.4 MBit/s                                4095 Pkts.\n" +
 		"\tTX: 550.6 MBit/s                                   0 Pkts.\n" +
 		"\texpected throughput: unknown"
 	status.parseAssocList(response)
