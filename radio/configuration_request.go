@@ -7,13 +7,20 @@ import (
 
 // ConfigurationRequest represents a JSON request to configure the radio.
 type ConfigurationRequest struct {
-	Channel               int                             `json:"channel"`
+	// 5GHz or 6GHz channel number for the radio to use. Set to 0 to leave unchanged.
+	Channel int `json:"channel"`
+
+	// SSID and WPA key for each team station, keyed by alliance and number (e.g. "red1", "blue3). If a station is not
+	// included, its network will be disabled by setting its SSID to a placeholder.
 	StationConfigurations map[string]StationConfiguration `json:"stationConfigurations"`
 }
 
 // StationConfiguration represents the configuration for a single team station.
 type StationConfiguration struct {
-	Ssid   string `json:"ssid"`
+	// Team-specific SSID for the station, usually equal to the team number as a string.
+	Ssid string `json:"ssid"`
+
+	// Team-specific WPA key for the station. Must be at least eight characters long.
 	WpaKey string `json:"wpaKey"`
 }
 

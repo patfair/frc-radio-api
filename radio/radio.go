@@ -14,25 +14,53 @@ import (
 )
 
 const (
-	bootPollIntervalSec            = 3
-	statusPollIntervalSec          = 5
+	// How frequently to poll the radio while waiting for it to finish starting up.
+	bootPollIntervalSec = 3
+
+	// How frequently to poll the radio for its current status between configurations.
+	monitoringPollIntervalSec = 5
+
+	// Sentinel value used to populate status fields when a monitoring command failed.
+	monitoringErrorCode = -999
+
+	// How many configuration requests to buffer in memory.
 	configurationRequestBufferSize = 10
-	linksysWifiReloadBackoffSec    = 5
-	retryBackoffSec                = 3
-	saltCharacters                 = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	saltLength                     = 16
-	monitoringErrorCode            = -999
+
+	// How long to wait after reloading the Wi-Fi configuration on the Linksys AP before polling the status.
+	linksysWifiReloadBackoffSec = 5
+
+	// How long to wait between retries when configuring the radio.
+	retryBackoffSec = 3
+
+	// Valid characters in the randomly generated salt used to obscure the WPA key.
+	saltCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+	// Length of the randomly generated salt used to obscure the WPA key.
+	saltLength = 16
 )
 
 // Radio holds the current state of the access point's configuration and any robot radios connected to it.
 type Radio struct {
-	Channel                     int                       `json:"channel"`
-	Status                      radioStatus               `json:"status"`
-	StationStatuses             map[string]*StationStatus `json:"stationStatuses"`
-	Type                        radioType                 `json:"-"`
+	// 5GHz or 6GHz channel number the radio is broadcasting on.
+	Channel int `json:"channel"`
+
+	// Enum representing the current configuration stage of the radio.
+	Status radioStatus `json:"status"`
+
+	// Map of team station names to their current status.
+	StationStatuses map[string]*StationStatus `json:"stationStatuses"`
+
+	// Queue for receiving and buffering configuration requests.
 	ConfigurationRequestChannel chan ConfigurationRequest `json:"-"`
-	device                      string
-	stationInterfaces           map[station]string
+
+	// Hardware type of the radio.
+	Type radioType `json:"-"`
+
+	// Name of the radio's Wi-Fi device, dependent on the hardware type.
+	device string
+
+	// Map of team station names to their Wi-Fi interface names, dependent on the hardware type.
+	stationInterfaces map[station]string
 }
 
 // radioType represents the hardware type of the radio.
@@ -74,6 +102,7 @@ func NewRadio() *Radio {
 	}
 	log.Printf("Detected radio hardware type: %v", radio.Type)
 
+	// Initialize the device and station interface names that are dependent on the hardware type.
 	switch radio.Type {
 	case typeLinksys:
 		radio.device = "radio0"
@@ -124,7 +153,7 @@ func (radio *Radio) Run() {
 		select {
 		case request := <-radio.ConfigurationRequestChannel:
 			_ = radio.handleConfigurationRequest(request)
-		case <-time.After(time.Second * statusPollIntervalSec):
+		case <-time.After(time.Second * monitoringPollIntervalSec):
 			radio.updateStationMonitoring()
 		}
 	}
@@ -314,6 +343,7 @@ func (radio *Radio) updateStationMonitoring() {
 			continue
 		}
 
+		// Update the bandwidth usage.
 		output, err := shell.runCommand("luci-bwc", "-i", stationInterface)
 		if err != nil {
 			log.Printf("Error running 'luci-bwc -i %s': %v", stationInterface, err)
@@ -321,6 +351,8 @@ func (radio *Radio) updateStationMonitoring() {
 		} else {
 			stationStatus.parseBandwidthUsed(output)
 		}
+
+		// Update the link state of any associated robot radios.
 		output, err = shell.runCommand("iwinfo", stationInterface, "assoclist")
 		if err != nil {
 			log.Printf("Error running 'iwinfo %s assoclist': %v", stationInterface, err)

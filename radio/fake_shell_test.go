@@ -8,9 +8,18 @@ import (
 
 // fakeShell stubs the shellWrapper interface for testing purposes.
 type fakeShell struct {
-	t             *testing.T
-	commandsRun   map[string]struct{}
+	// Test assertion object, used to fail the test on unexpected commands.
+	t *testing.T
+
+	// Set of commands that have been run, for tests to assert against.
+	commandsRun map[string]struct{}
+
+	// Map of commands to their successful response, for tests to set. A given command should only appear once between
+	// commandOutput and commandErrors.
 	commandOutput map[string]string
+
+	// Map of commands to their error response, for tests to set. A given command should only appear once between
+	// commandOutput and commandErrors.
 	commandErrors map[string]error
 }
 

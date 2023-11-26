@@ -8,10 +8,12 @@ import (
 	"net/http"
 )
 
+// TCP port that the web server listens on.
 const port = 8081
 
 // WebServer holds shared state across requests to the API.
 type WebServer struct {
+	// Device that the API provides access to.
 	radio *radio.Radio
 }
 
