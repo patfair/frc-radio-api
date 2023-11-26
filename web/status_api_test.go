@@ -33,3 +33,21 @@ func TestWeb_statusHandler(t *testing.T) {
 	assert.Equal(t, ap.Status, actualAp.Status)
 	assert.Equal(t, ap.StationStatuses, actualAp.StationStatuses)
 }
+
+func TestWeb_statusHandlerAuthorization(t *testing.T) {
+	ap := radio.NewRadio()
+	web := NewWebServer(ap)
+	web.password = "mypassword"
+
+	// Without password.
+	recorder := web.getHttpResponse("/status")
+	assert.Equal(t, 401, recorder.Code)
+
+	// With wrong password.
+	recorder = web.getHttpResponseWithHeaders("/status", map[string]string{"Authorization": "Bearer wrongpassword"})
+	assert.Equal(t, 401, recorder.Code)
+
+	// With correct password.
+	recorder = web.getHttpResponseWithHeaders("/status", map[string]string{"Authorization": "Bearer mypassword"})
+	assert.Equal(t, 200, recorder.Code)
+}

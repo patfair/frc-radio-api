@@ -20,7 +20,7 @@ func TestWeb_configurationHandler(t *testing.T) {
 	recorder = web.postHttpResponse(
 		"/configuration", `{"stationConfigurations": {"blue1": {"ssid": "254", "wpaKey": "12345678"}}}`,
 	)
-	assert.Equal(t, 200, recorder.Code)
+	assert.Equal(t, 202, recorder.Code)
 	assert.Contains(t, recorder.Body.String(), "configuration received")
 	if assert.Equal(t, 1, len(ap.ConfigurationRequestChannel)) {
 		request := <-ap.ConfigurationRequestChannel
@@ -48,7 +48,7 @@ func TestWeb_configurationHandler(t *testing.T) {
 		}
 		`,
 	)
-	assert.Equal(t, 200, recorder.Code)
+	assert.Equal(t, 202, recorder.Code)
 	assert.Contains(t, recorder.Body.String(), "configuration received")
 	if assert.Equal(t, 1, len(ap.ConfigurationRequestChannel)) {
 		request := <-ap.ConfigurationRequestChannel
@@ -90,4 +90,26 @@ func TestWeb_configurationHandlerInvalidInput(t *testing.T) {
 	assert.Equal(t, 400, recorder.Code)
 	assert.Contains(t, recorder.Body.String(), "empty configuration request")
 	assert.Equal(t, 0, len(ap.ConfigurationRequestChannel))
+}
+
+func TestWeb_configurationHandlerAuthorization(t *testing.T) {
+	ap := radio.NewRadio()
+	web := NewWebServer(ap)
+	web.password = "mypassword"
+
+	// Without password.
+	recorder := web.postHttpResponse("/configuration", `{"channel": 149}`)
+	assert.Equal(t, 401, recorder.Code)
+
+	// With wrong password.
+	recorder = web.postHttpResponseWithHeaders(
+		"/configuration", `{"channel": 149}`, map[string]string{"Authorization": "Bearer wrongpassword"},
+	)
+	assert.Equal(t, 401, recorder.Code)
+
+	// With correct password.
+	recorder = web.postHttpResponseWithHeaders(
+		"/configuration", `{"channel": 149}`, map[string]string{"Authorization": "Bearer mypassword"},
+	)
+	assert.Equal(t, 202, recorder.Code)
 }

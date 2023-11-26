@@ -7,6 +7,13 @@ import (
 
 // statusHandler returns a JSON dump of the radio status.
 func (web *WebServer) statusHandler(w http.ResponseWriter, r *http.Request) {
+	if !web.isAuthorized(r) {
+		http.Error(
+			w, "Not authorized; must provide 'Authorization: Bearer [password]' header.", http.StatusUnauthorized,
+		)
+		return
+	}
+
 	jsonData, err := json.MarshalIndent(web.radio, "", "  ")
 	if err != nil {
 		handleWebErr(w, err)
