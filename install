@@ -1,0 +1,60 @@
+#!/bin/sh
+set -e
+
+DEFAULT_TARGET=10.0.100.2
+BINARY_FILE=frc-radio-api
+USER=root
+SSH_ARGS="-o ConnectTimeout=5 -o StrictHostKeyChecking=no"
+API_PORT=8081
+
+read -p "Device IP address [$DEFAULT_TARGET]: " TARGET
+TARGET=${TARGET:-$DEFAULT_TARGET}
+read -p "Set API password (leave blank to disable): " PASSWORD
+
+# Optionally build the binary.
+if [ "$1" = "--build" ]; then
+  echo "Building binary..."
+  GOOS=linux GOARCH=arm go build -o $BINARY_FILE
+fi
+
+# Determine the radio type.
+echo
+RADIO_TYPE=`ssh $SSH_ARGS $USER@$TARGET "uci get system.@system[0].model 2>&1 | grep VH > /dev/null; echo \\$?"`
+if [ $RADIO_TYPE = "0" ]; then
+  echo "Detected Vivid-Hosting radio type."
+  CONFIG_FILE=wireless-boot-vh
+else
+  echo "Detected Linksys radio type."
+  CONFIG_FILE=wireless-boot-linksys
+fi
+
+echo "\nDeploying to $TARGET..."
+
+# Stop the API if it is running to avoid a file conflict.
+ssh $SSH_ARGS $USER@$TARGET "/etc/init.d/frc-radio-api stop 2>/dev/null || true"
+
+# Copy over the baseline configuration which gets loaded on boot.
+scp -O $SSH_ARGS $CONFIG_FILE $USER@$TARGET:/etc/config/wireless-boot
+
+# Copy over the API binary.
+scp -O $SSH_ARGS $BINARY_FILE $USER@$TARGET:/usr/bin/
+
+# Copy over the API init script.
+scp -O $SSH_ARGS frc-radio-api.init $USER@$TARGET:/etc/init.d/frc-radio-api
+
+# Create the API password file.
+ssh $SSH_ARGS $USER@$TARGET "echo $PASSWORD > /root/frc-radio-api-password.txt"
+
+# Comment out the unnecessary 'wifi detect' command in the boot script; it just delays the Ethernet interface bring-up.
+ssh $SSH_ARGS $USER@$TARGET "sed -E 's/^\t(\/sbin\/wifi detect)/\t#\1/' -i /etc/init.d/boot"
+
+# Start the API server.
+ssh $SSH_ARGS $USER@$TARGET "chmod +x /usr/bin/frc-radio-api /etc/init.d/frc-radio-api && \
+  (ln -s ../init.d/frc-radio-api /etc/rc.d/S11frc-radio-api || true) && \
+  /etc/init.d/frc-radio-api start"
+
+echo "\nChecking health..."
+sleep 1
+(curl -s --fail "http://$TARGET:$API_PORT/health" | grep OK) || (echo "Health check failed." && exit 1)
+
+echo "\nDeployed successfully."

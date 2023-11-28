@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 // TCP port that the web server listens on.
@@ -15,6 +16,9 @@ const port = 8081
 
 // Path to the optional file containing the password for the API.
 const passwordFilePath = "/root/frc-radio-api-password.txt"
+
+// Interval between attempts to get the IP address of the radio on startup.
+const ipAddressPollIntervalSec = 3
 
 // WebServer holds shared state across requests to the API.
 type WebServer struct {
@@ -34,9 +38,16 @@ func NewWebServer(radio *radio.Radio) *WebServer {
 func (web *WebServer) Run() {
 	web.setUpAuthorization()
 
-	ipAddress, err := getVlan100IpAddress()
-	if err != nil {
-		log.Fatalf("error: %v", err)
+	var ipAddress string
+	for {
+		var err error
+		ipAddress, err = getVlan100IpAddress()
+		if err != nil {
+			log.Printf("Error getting radio IP address; trying again later: %v", err)
+			time.Sleep(ipAddressPollIntervalSec * time.Second)
+			continue
+		}
+		break
 	}
 
 	listenAddress := fmt.Sprintf("%s:%d", ipAddress, port)

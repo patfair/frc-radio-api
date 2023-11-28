@@ -87,8 +87,8 @@ const (
 var uciTree = uci.NewTree(uci.DefaultTreePath)
 var shell shellWrapper = execShell{}
 var ssidRe = regexp.MustCompile("ESSID: \"([-\\w ]*)\"")
-var linksysWifiReloadBackoffDuration = time.Second * linksysWifiReloadBackoffSec
-var retryBackoffDuration = time.Second * retryBackoffSec
+var linksysWifiReloadBackoffDuration = linksysWifiReloadBackoffSec * time.Second
+var retryBackoffDuration = retryBackoffSec * time.Second
 
 // NewRadio creates a new Radio instance and initializes its fields to default values.
 func NewRadio() *Radio {
@@ -153,7 +153,7 @@ func (radio *Radio) Run() {
 		select {
 		case request := <-radio.ConfigurationRequestChannel:
 			_ = radio.handleConfigurationRequest(request)
-		case <-time.After(time.Second * monitoringPollIntervalSec):
+		case <-time.After(monitoringPollIntervalSec * time.Second):
 			radio.updateStationMonitoring()
 		}
 	}
