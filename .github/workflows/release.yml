@@ -1,0 +1,52 @@
+on:
+  push:
+    tags:
+      - "v*"
+name: Create Release
+jobs:
+  create_release:
+    runs-on: ubuntu-latest
+    env:
+      ASSET_FILES: LICENSE README.md frc-radio-api.init install wireless-boot-linksys wireless-boot-vh
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.20.x
+
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: frc-radio-api ${{ github.ref }}
+          body: This is a release of frc-radio-api, supporting both Vivid-Hosting and Linksys access points.
+          draft: false
+          prerelease: false
+
+      - name: Set additional environment variables
+        run: |
+          echo "RELEASE_FILENAME=frc-radio-api.${GITHUB_REF:10}.zip" >> $GITHUB_ENV
+
+      - name: Build bundle
+        run: |
+          rm -rf frc-radio-api
+          mkdir frc-radio-api
+          GOOS=linux GOARCH=arm go build -o frc-radio-api/
+          cp -r ${{ env.ASSET_FILES }} frc-radio-api/
+          zip -r -X ${{ env.RELEASE_FILENAME }} frc-radio-api
+
+      - name: Upload bundle
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{ env.RELEASE_FILENAME }}
+          asset_name: ${{ env.RELEASE_FILENAME }}
+          asset_content_type: application/zip
