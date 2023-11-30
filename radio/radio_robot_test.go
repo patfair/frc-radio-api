@@ -92,7 +92,7 @@ func TestRadio_handleConfigurationRequestErrors(t *testing.T) {
 	uciTree = fakeTree
 	fakeShell := newFakeShell(t)
 	shell = fakeShell
-	retryBackoffDuration = 1 * time.Millisecond
+	retryBackoffDuration = 10 * time.Millisecond
 	radio := NewRadio()
 
 	// wifi reload fails.
@@ -128,7 +128,7 @@ func TestRadio_handleConfigurationRequestErrors(t *testing.T) {
 	fakeShell.commandOutput["wifi reload wifi1"] = ""
 	fakeShell.commandOutput["iwinfo ath1 info"] = "ath1\nESSID: \"2\"\n"
 	go func() {
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 		fakeShell.commandOutput["iwinfo ath1 info"] = "ath1\nESSID: \"1\"\n"
 	}()
 	assert.Nil(t, radio.handleConfigurationRequest(request))

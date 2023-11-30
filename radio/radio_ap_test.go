@@ -290,7 +290,7 @@ func TestRadio_handleConfigurationRequestErrors(t *testing.T) {
 	fakeTree.valuesForGet["system.@system[0].model"] = "VH-109(AP)"
 	fakeShell := newFakeShell(t)
 	shell = fakeShell
-	retryBackoffDuration = 1 * time.Millisecond
+	retryBackoffDuration = 10 * time.Millisecond
 	radio := NewRadio()
 
 	// wifi reload fails.
@@ -343,7 +343,7 @@ func TestRadio_handleConfigurationRequestErrors(t *testing.T) {
 	fakeShell.commandOutput["iwinfo ath14 info"] = "ath14\nESSID: \"no-team-5\"\n"
 	fakeShell.commandOutput["iwinfo ath15 info"] = "ath15\nESSID: \"no-team-6\"\n"
 	go func() {
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 		fakeShell.commandOutput["iwinfo ath1 info"] = "ath1\nESSID: \"no-team-1\"\n"
 	}()
 	assert.Nil(t, radio.handleConfigurationRequest(request))
