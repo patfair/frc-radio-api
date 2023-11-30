@@ -7,7 +7,9 @@ jobs:
   create_release:
     runs-on: ubuntu-latest
     env:
-      ASSET_FILES: LICENSE README.md frc-radio-api.init install wireless-boot-linksys wireless-boot-vh
+      ACCESS_POINT_ASSET_FILES: LICENSE README.md access-point.init install-access-point wireless-boot-linksys
+        wireless-boot-vh
+      ROBOT_RADIO_ASSET_FILES: LICENSE README.md robot-radio.init install-robot-radio
     steps:
       - name: Install Go
         uses: actions/setup-go@v2
@@ -25,28 +27,48 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           release_name: frc-radio-api ${{ github.ref }}
-          body: This is a release of frc-radio-api, supporting both Vivid-Hosting and Linksys access points.
+          body: This is a release of frc-radio-api, supporting both Vivid-Hosting and Linksys access points as well as
+            the Vivid-Hosting robot radio.
           draft: false
           prerelease: false
 
       - name: Set additional environment variables
         run: |
-          echo "RELEASE_FILENAME=frc-radio-api.${GITHUB_REF:10}.zip" >> $GITHUB_ENV
+          echo "ACCESS_POINT_FILENAME=frc-radio-api.access-point.${GITHUB_REF:10}.zip" >> $GITHUB_ENV
+          echo "ROBOT_RADIO_FILENAME=frc-radio-api.robot-radio.${GITHUB_REF:10}.zip" >> $GITHUB_ENV
 
-      - name: Build bundle
+      - name: Build access point bundle
         run: |
           rm -rf frc-radio-api
           mkdir frc-radio-api
           GOOS=linux GOARCH=arm go build -o frc-radio-api/
-          cp -r ${{ env.ASSET_FILES }} frc-radio-api/
-          zip -r -X ${{ env.RELEASE_FILENAME }} frc-radio-api
+          cp -r ${{ env.ACCESS_POINT_ASSET_FILES }} frc-radio-api/
+          zip -r -X ${{ env.ACCESS_POINT_FILENAME }} frc-radio-api
 
-      - name: Upload bundle
+      - name: Upload access point bundle
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./${{ env.RELEASE_FILENAME }}
-          asset_name: ${{ env.RELEASE_FILENAME }}
+          asset_path: ./${{ env.ACCESS_POINT_FILENAME }}
+          asset_name: ${{ env.ACCESS_POINT_FILENAME }}
+          asset_content_type: application/zip
+
+      - name: Build robot radio bundle
+        run: |
+          rm -rf frc-radio-api
+          mkdir frc-radio-api
+          GOOS=linux GOARCH=arm go build -tags robot -o frc-radio-api/
+          cp -r ${{ env.ROBOT_RADIO_ASSET_FILES }} frc-radio-api/
+          zip -r -X ${{ env.ROBOT_RADIO_FILENAME }} frc-radio-api
+
+      - name: Upload robot radio bundle
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{ env.ROBOT_RADIO_FILENAME }}
+          asset_name: ${{ env.ROBOT_RADIO_FILENAME }}
           asset_content_type: application/zip

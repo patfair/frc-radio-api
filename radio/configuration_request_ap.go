@@ -1,3 +1,6 @@
+// This file is specific to the access point version of the API.
+//go:build !robot
+
 package radio
 
 import (
@@ -27,7 +30,7 @@ type StationConfiguration struct {
 var validLinksysChannels = []int{36, 40, 44, 48, 149, 153, 157, 161, 165}
 
 // Validate checks that all parameters within the configuration request have valid values.
-func (request ConfigurationRequest) Validate(radioType radioType) error {
+func (request ConfigurationRequest) Validate(radio *Radio) error {
 	if request.Channel == 0 && len(request.StationConfigurations) == 0 {
 		return errors.New("empty configuration request")
 	}
@@ -35,7 +38,7 @@ func (request ConfigurationRequest) Validate(radioType radioType) error {
 	if request.Channel != 0 {
 		// Validate channel number.
 		valid := false
-		switch radioType {
+		switch radio.Type {
 		case typeLinksys:
 			for _, channel := range validLinksysChannels {
 				if request.Channel == channel {
@@ -49,7 +52,7 @@ func (request ConfigurationRequest) Validate(radioType radioType) error {
 			valid = y == 0 && x >= 0 && x <= 28
 		}
 		if !valid {
-			return fmt.Errorf("invalid channel for %s: %d", radioType.String(), request.Channel)
+			return fmt.Errorf("invalid channel for %s: %d", radio.Type.String(), request.Channel)
 		}
 	}
 

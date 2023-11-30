@@ -26,9 +26,6 @@ func (tree *fakeUciTree) reset() {
 }
 
 func (tree *fakeUciTree) SetType(config, section, option string, typ uci.OptionType, values ...string) bool {
-	if typ != uci.TypeOption {
-		panic("not implemented")
-	}
 	tree.valuesFromSet[fmt.Sprintf("%s.%s.%s", config, section, option)] = values[0]
 	tree.setCount++
 	return true

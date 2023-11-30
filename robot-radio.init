@@ -1,0 +1,14 @@
+#!/bin/sh /etc/rc.common
+
+START=11
+USE_PROCD=1
+
+boot() {
+  start
+}
+
+start_service() {
+  procd_open_instance
+  procd_set_param command /usr/bin/frc-radio-api
+  procd_close_instance
+}

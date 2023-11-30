@@ -1,17 +1,31 @@
+// This file is specific to the access point version of the API.
+//go:build !robot
+
 package web
 
 import (
 	"fmt"
 	"log"
 	"net"
-	"net/http"
 	"regexp"
+	"time"
 )
 
-// handleWebErr writes the given error out as plain text with a status code of 500.
-func handleWebErr(w http.ResponseWriter, err error) {
-	log.Printf("HTTP request error: %v", err)
-	http.Error(w, "Internal server error: "+err.Error(), 500)
+// getListenAddress returns the address and port that the web server should listen on.
+func getListenAddress() string {
+	var ipAddress string
+	for {
+		var err error
+		ipAddress, err = getVlan100IpAddress()
+		if err != nil {
+			log.Printf("Error getting radio IP address; trying again later: %v", err)
+			time.Sleep(ipAddressPollIntervalSec * time.Second)
+			continue
+		}
+		break
+	}
+
+	return fmt.Sprintf("%s:%d", ipAddress, port)
 }
 
 // getVlan100IpAddress returns the IP address of the first interface that has an IP address on the 10.0.100.x VLAN.

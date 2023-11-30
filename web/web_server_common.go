@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"time"
 )
 
 // TCP port that the web server listens on.
@@ -38,19 +37,7 @@ func NewWebServer(radio *radio.Radio) *WebServer {
 func (web *WebServer) Run() {
 	web.setUpAuthorization()
 
-	var ipAddress string
-	for {
-		var err error
-		ipAddress, err = getVlan100IpAddress()
-		if err != nil {
-			log.Printf("Error getting radio IP address; trying again later: %v", err)
-			time.Sleep(ipAddressPollIntervalSec * time.Second)
-			continue
-		}
-		break
-	}
-
-	listenAddress := fmt.Sprintf("%s:%d", ipAddress, port)
+	listenAddress := getListenAddress()
 	log.Printf("Server listening on %s\n", listenAddress)
 	if err := http.ListenAndServe(listenAddress, web.newRouter()); err != nil {
 		log.Fatal(err)
@@ -95,4 +82,10 @@ func (web *WebServer) isAuthorized(r *http.Request) bool {
 	var password string
 	_, _ = fmt.Sscanf(r.Header.Get("Authorization"), "Bearer %s", &password)
 	return password == web.password
+}
+
+// handleWebErr writes the given error out as plain text with a status code of 500.
+func handleWebErr(w http.ResponseWriter, err error) {
+	log.Printf("HTTP request error: %v", err)
+	http.Error(w, "Internal server error: "+err.Error(), 500)
 }

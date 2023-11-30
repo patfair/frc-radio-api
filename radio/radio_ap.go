@@ -1,42 +1,23 @@
+// This file is specific to the access point version of the API.
+//go:build !robot
+
 package radio
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"github.com/digineo/go-uci"
 	"log"
-	"math/rand"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
 )
 
 const (
-	// How frequently to poll the radio while waiting for it to finish starting up.
-	bootPollIntervalSec = 3
-
-	// How frequently to poll the radio for its current status between configurations.
-	monitoringPollIntervalSec = 5
-
 	// Sentinel value used to populate status fields when a monitoring command failed.
 	monitoringErrorCode = -999
 
-	// How many configuration requests to buffer in memory.
-	configurationRequestBufferSize = 10
-
 	// How long to wait after reloading the Wi-Fi configuration on the Linksys AP before polling the status.
 	linksysWifiReloadBackoffSec = 5
-
-	// How long to wait between retries when configuring the radio.
-	retryBackoffSec = 3
-
-	// Valid characters in the randomly generated salt used to obscure the WPA key.
-	saltCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-
-	// Length of the randomly generated salt used to obscure the WPA key.
-	saltLength = 16
 )
 
 // Radio holds the current state of the access point's configuration and any robot radios connected to it.
@@ -63,32 +44,7 @@ type Radio struct {
 	stationInterfaces map[station]string
 }
 
-// radioType represents the hardware type of the radio.
-//
-//go:generate stringer -type=radioType
-type radioType int
-
-const (
-	typeUnknown radioType = iota
-	typeLinksys
-	typeVividHosting
-)
-
-// radioStatus represents the configuration stage of the radio.
-type radioStatus string
-
-const (
-	statusBooting     radioStatus = "BOOTING"
-	statusConfiguring             = "CONFIGURING"
-	statusActive                  = "ACTIVE"
-	statusError                   = "ERROR"
-)
-
-var uciTree = uci.NewTree(uci.DefaultTreePath)
-var shell shellWrapper = execShell{}
-var ssidRe = regexp.MustCompile("ESSID: \"([-\\w ]*)\"")
 var linksysWifiReloadBackoffDuration = linksysWifiReloadBackoffSec * time.Second
-var retryBackoffDuration = retryBackoffSec * time.Second
 
 // NewRadio creates a new Radio instance and initializes its fields to default values.
 func NewRadio() *Radio {
@@ -134,31 +90,6 @@ func NewRadio() *Radio {
 	return &radio
 }
 
-// Run loops indefinitely, handling configuration requests and polling the Wi-Fi status.
-func (radio *Radio) Run() {
-	for !radio.isStarted() {
-		log.Println("Waiting for radio to finish starting up...")
-		time.Sleep(bootPollIntervalSec * time.Second)
-	}
-	log.Println("Radio ready with baseline Wi-Fi configuration.")
-
-	// Initialize the in-memory state to match the radio's current configuration.
-	channel, _ := uciTree.GetLast("wireless", radio.device, "channel")
-	radio.Channel, _ = strconv.Atoi(channel)
-	_ = radio.updateStationStatuses()
-	radio.Status = statusActive
-
-	for {
-		// Check if there are any pending configuration requests; if not, periodically poll Wi-Fi status.
-		select {
-		case request := <-radio.ConfigurationRequestChannel:
-			_ = radio.handleConfigurationRequest(request)
-		case <-time.After(monitoringPollIntervalSec * time.Second):
-			radio.updateStationMonitoring()
-		}
-	}
-}
-
 // determineAndSetType determines the model of the radio.
 func (radio *Radio) determineAndSetType() {
 	model, _ := uciTree.GetLast("system", "@system[0]", "model")
@@ -175,23 +106,11 @@ func (radio *Radio) isStarted() bool {
 	return err == nil
 }
 
-func (radio *Radio) handleConfigurationRequest(request ConfigurationRequest) error {
-	// If there are multiple requests queued up, only consider the latest one.
-	numExtraRequests := len(radio.ConfigurationRequestChannel)
-	for i := 0; i < numExtraRequests; i++ {
-		request = <-radio.ConfigurationRequestChannel
-	}
-
-	radio.Status = statusConfiguring
-	log.Printf("Processing configuration request: %+v", request)
-	if err := radio.configure(request); err != nil {
-		log.Printf("Error configuring radio: %v", err)
-		radio.Status = statusError
-		return err
-	} else if len(radio.ConfigurationRequestChannel) == 0 {
-		radio.Status = statusActive
-	}
-	return nil
+// setInitialState initializes the in-memory state to match the radio's current configuration.
+func (radio *Radio) setInitialState() {
+	channel, _ := uciTree.GetLast("wireless", radio.device, "channel")
+	radio.Channel, _ = strconv.Atoi(channel)
+	_ = radio.updateStationStatuses()
 }
 
 // configure configures the radio with the given configuration.
@@ -268,26 +187,17 @@ func (radio *Radio) configureStations(stationConfigurations map[string]StationCo
 // in-memory state.
 func (radio *Radio) updateStationStatuses() error {
 	for station, stationInterface := range radio.stationInterfaces {
-		output, err := shell.runCommand("iwinfo", stationInterface, "info")
+		ssid, err := getSsid(stationInterface)
 		if err != nil {
-			return fmt.Errorf("error getting iwinfo for interface %s: %v", stationInterface, err)
+			return err
+		}
+		if strings.HasPrefix(ssid, "no-team-") {
+			radio.StationStatuses[station.String()] = nil
 		} else {
-			matches := ssidRe.FindStringSubmatch(output)
-			if len(matches) > 0 {
-				ssid := matches[1]
-				if strings.HasPrefix(ssid, "no-team-") {
-					radio.StationStatuses[station.String()] = nil
-				} else {
-					var status StationStatus
-					status.Ssid = ssid
-					status.HashedWpaKey, status.WpaKeySalt = radio.getHashedWpaKeyAndSalt(station)
-					radio.StationStatuses[station.String()] = &status
-				}
-			} else {
-				return fmt.Errorf(
-					"error parsing iwinfo output for interface %s: %s", stationInterface, output,
-				)
-			}
+			var status StationStatus
+			status.Ssid = ssid
+			status.HashedWpaKey, status.WpaKeySalt = radio.getHashedWpaKeyAndSalt(int(station) + 1)
+			radio.StationStatuses[station.String()] = &status
 		}
 	}
 
@@ -313,29 +223,9 @@ func (radio *Radio) stationSsidsAreCorrect(stationConfigurations map[string]Stat
 	return true
 }
 
-// getHashedWpaKeyAndSalt fetches the WPA key for the given station and returns its hashed value and the salt used for
-// hashing.
-func (radio *Radio) getHashedWpaKeyAndSalt(station station) (string, string) {
-	wpaKey, ok := uciTree.GetLast("wireless", fmt.Sprintf("@wifi-iface[%d]", station+1), "key")
-	if !ok {
-		return "", ""
-	}
-	// Generate a random string of 16 characters to use as the salt.
-	saltBytes := make([]byte, saltLength)
-	for i := 0; i < saltLength; i++ {
-		saltBytes[i] = saltCharacters[rand.Intn(len(saltCharacters))]
-	}
-	salt := string(saltBytes)
-	hash := sha256.New()
-	hash.Write([]byte(wpaKey + salt))
-	hashedWpaKey := hex.EncodeToString(hash.Sum(nil))
-
-	return hashedWpaKey, salt
-}
-
-// updateStationMonitoring polls the access point for the current bandwidth usage and link state of each team station
-// and updates the in-memory state.
-func (radio *Radio) updateStationMonitoring() {
+// updateMonitoring polls the access point for the current bandwidth usage and link state of each team station and
+// updates the in-memory state.
+func (radio *Radio) updateMonitoring() {
 	for station, stationInterface := range radio.stationInterfaces {
 		stationStatus := radio.StationStatuses[station.String()]
 		if stationStatus == nil {

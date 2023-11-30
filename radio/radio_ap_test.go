@@ -1,3 +1,6 @@
+// This file is specific to the access point version of the API.
+//go:build !robot
+
 package radio
 
 import (
@@ -87,6 +90,31 @@ func TestRadio_isStarted(t *testing.T) {
 	assert.True(t, ok)
 }
 
+func TestRadio_setInitialState(t *testing.T) {
+	fakeTree := newFakeUciTree()
+	uciTree = fakeTree
+	fakeTree.valuesForGet["system.@system[0].model"] = "VH-109(AP)"
+	fakeShell := newFakeShell(t)
+	shell = fakeShell
+	radio := NewRadio()
+
+	fakeTree.valuesForGet["wireless.wifi1.channel"] = "23"
+	fakeShell.commandOutput["iwinfo ath1 info"] = "ath1\nESSID: \"1111\"\n"
+	fakeShell.commandOutput["iwinfo ath11 info"] = "ath11\nESSID: \"no-team-2\"\n"
+	fakeShell.commandOutput["iwinfo ath12 info"] = "ath12\nESSID: \"no-team-3\"\n"
+	fakeShell.commandOutput["iwinfo ath13 info"] = "ath13\nESSID: \"no-team-4\"\n"
+	fakeShell.commandOutput["iwinfo ath14 info"] = "ath14\nESSID: \"no-team-5\"\n"
+	fakeShell.commandOutput["iwinfo ath15 info"] = "ath15\nESSID: \"6666\"\n"
+	radio.setInitialState()
+	assert.Equal(t, 23, radio.Channel)
+	assert.Equal(t, "1111", radio.StationStatuses["red1"].Ssid)
+	assert.Nil(t, radio.StationStatuses["red2"])
+	assert.Nil(t, radio.StationStatuses["red3"])
+	assert.Nil(t, radio.StationStatuses["blue1"])
+	assert.Nil(t, radio.StationStatuses["blue2"])
+	assert.Equal(t, "6666", radio.StationStatuses["blue3"].Ssid)
+}
+
 func TestRadio_handleConfigurationRequestVividHosting(t *testing.T) {
 	fakeTree := newFakeUciTree()
 	uciTree = fakeTree
@@ -150,6 +178,13 @@ func TestRadio_handleConfigurationRequestVividHosting(t *testing.T) {
 	assert.Contains(t, fakeShell.commandsRun, "iwinfo ath13 info")
 	assert.Contains(t, fakeShell.commandsRun, "iwinfo ath14 info")
 	assert.Contains(t, fakeShell.commandsRun, "iwinfo ath15 info")
+
+	assert.Equal(t, "1111", radio.StationStatuses["red1"].Ssid)
+	assert.Nil(t, radio.StationStatuses["red2"])
+	assert.Equal(t, "3333", radio.StationStatuses["red3"].Ssid)
+	assert.Nil(t, radio.StationStatuses["blue1"])
+	assert.Equal(t, "5555", radio.StationStatuses["blue2"].Ssid)
+	assert.Equal(t, "6666", radio.StationStatuses["blue3"].Ssid)
 }
 
 func TestRadio_handleConfigurationRequestLinksys(t *testing.T) {
@@ -321,7 +356,7 @@ func TestRadio_updateStationMonitoring(t *testing.T) {
 	radio := NewRadio()
 
 	// No teams assigned.
-	radio.updateStationMonitoring()
+	radio.updateMonitoring()
 	assert.Empty(t, fakeShell.commandsRun)
 
 	// Some teams assigned.
@@ -344,7 +379,7 @@ func TestRadio_updateStationMonitoring(t *testing.T) {
 	fakeShell.commandOutput["iwinfo wlan0-2 assoclist"] = ""
 	fakeShell.commandOutput["luci-bwc -i wlan0-4"] = ""
 	fakeShell.commandErrors["iwinfo wlan0-4 assoclist"] = errors.New("oops")
-	radio.updateStationMonitoring()
+	radio.updateMonitoring()
 	assert.Equal(
 		t,
 		StationStatus{

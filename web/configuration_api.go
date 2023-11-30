@@ -24,7 +24,7 @@ func (web *WebServer) configurationHandler(w http.ResponseWriter, r *http.Reques
 		http.Error(w, errorMessage, http.StatusBadRequest)
 		return
 	}
-	if err := request.Validate(web.radio.Type); err != nil {
+	if err := request.Validate(web.radio); err != nil {
 		errorMessage := "Error: " + err.Error()
 		log.Println(errorMessage)
 		http.Error(w, errorMessage, http.StatusBadRequest)

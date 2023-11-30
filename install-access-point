@@ -40,7 +40,7 @@ scp -O $SSH_ARGS $CONFIG_FILE $USER@$TARGET:/etc/config/wireless-boot
 scp -O $SSH_ARGS $BINARY_FILE $USER@$TARGET:/usr/bin/
 
 # Copy over the API init script.
-scp -O $SSH_ARGS frc-radio-api.init $USER@$TARGET:/etc/init.d/frc-radio-api
+scp -O $SSH_ARGS access-point.init $USER@$TARGET:/etc/init.d/frc-radio-api
 
 # Create the API password file.
 ssh $SSH_ARGS $USER@$TARGET "echo $PASSWORD > /root/frc-radio-api-password.txt"

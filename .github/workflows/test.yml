@@ -12,7 +12,9 @@ jobs:
       uses: actions/checkout@v2
     - name: Build
       run: go build
-    - name: Test
+    - name: Test access point
       run: go test ./...
+    - name: Test robot radio
+      run: go test -tags robot ./...
     - name: Check formatting
       run: test -z "$(go fmt ./...)"

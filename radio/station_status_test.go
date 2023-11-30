@@ -1,3 +1,6 @@
+// This file is specific to the access point version of the API.
+//go:build !robot
+
 package radio
 
 import (
