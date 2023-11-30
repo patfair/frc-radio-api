@@ -28,7 +28,8 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: frc-radio-api ${{ github.ref }}
           body: This is a release of frc-radio-api, supporting both Vivid-Hosting and Linksys access points as well as
-            the Vivid-Hosting robot radio.
+            the Vivid-Hosting robot radio. See https://github.com/patfair/frc-radio-api#installation for installation
+            instructions.
           draft: false
           prerelease: false
 
