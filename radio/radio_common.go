@@ -18,6 +18,9 @@ const (
 	// How frequently to poll the radio for its current status between configurations.
 	monitoringPollIntervalSec = 5
 
+	// How long to wait after reloading the Wi-Fi configuration before polling the status.
+	wifiReloadBackoffSec = 5
+
 	// How many configuration requests to buffer in memory.
 	configurationRequestBufferSize = 10
 
@@ -53,15 +56,16 @@ type radioStatus string
 
 const (
 	statusBooting     radioStatus = "BOOTING"
-	statusConfiguring             = "CONFIGURING"
-	statusActive                  = "ACTIVE"
-	statusError                   = "ERROR"
+	statusConfiguring radioStatus = "CONFIGURING"
+	statusActive      radioStatus = "ACTIVE"
+	statusError       radioStatus = "ERROR"
 )
 
 var uciTree = uci.NewTree(uci.DefaultTreePath)
 var shell shellWrapper = execShell{}
 var ssidRe = regexp.MustCompile("ESSID: \"([-\\w ]*)\"")
 var retryBackoffDuration = retryBackoffSec * time.Second
+var wifiReloadBackoffDuration = wifiReloadBackoffSec * time.Second
 
 // Run loops indefinitely, handling configuration requests and polling the Wi-Fi status.
 func (radio *Radio) Run() {
@@ -137,4 +141,11 @@ func getSsid(wifiInterface string) (string, error) {
 			return "", fmt.Errorf("error parsing iwinfo output for interface %s: %s", wifiInterface, output)
 		}
 	}
+}
+
+// isValid6GhzChannel returns true if the given channel is a valid 6GHz channel.
+func isValid6GhzChannel(channel int) bool {
+	x := (channel - 5) / 8
+	y := (channel - 5) % 8
+	return y == 0 && x >= 0 && x <= 28
 }

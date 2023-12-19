@@ -121,6 +121,7 @@ func TestRadio_handleConfigurationRequestVividHosting(t *testing.T) {
 	fakeTree.valuesForGet["system.@system[0].model"] = "VH-109(AP)"
 	fakeShell := newFakeShell(t)
 	shell = fakeShell
+	wifiReloadBackoffDuration = 10 * time.Millisecond
 	radio := NewRadio()
 
 	fakeShell.commandOutput["wifi reload wifi1"] = ""
@@ -193,7 +194,7 @@ func TestRadio_handleConfigurationRequestLinksys(t *testing.T) {
 	fakeTree.valuesForGet["system.@system[0].model"] = ""
 	fakeShell := newFakeShell(t)
 	shell = fakeShell
-	linksysWifiReloadBackoffDuration = 100 * time.Millisecond
+	wifiReloadBackoffDuration = 100 * time.Millisecond
 	radio := NewRadio()
 
 	fakeShell.commandOutput["wifi reload radio0"] = ""
@@ -291,6 +292,7 @@ func TestRadio_handleConfigurationRequestErrors(t *testing.T) {
 	fakeShell := newFakeShell(t)
 	shell = fakeShell
 	retryBackoffDuration = 10 * time.Millisecond
+	wifiReloadBackoffDuration = 10 * time.Millisecond
 	radio := NewRadio()
 
 	// wifi reload fails.

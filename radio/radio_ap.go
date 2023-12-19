@@ -15,9 +15,6 @@ import (
 const (
 	// Sentinel value used to populate status fields when a monitoring command failed.
 	monitoringErrorCode = -999
-
-	// How long to wait after reloading the Wi-Fi configuration on the Linksys AP before polling the status.
-	linksysWifiReloadBackoffSec = 5
 )
 
 // Radio holds the current state of the access point's configuration and any robot radios connected to it.
@@ -43,8 +40,6 @@ type Radio struct {
 	// Map of team station names to their Wi-Fi interface names, dependent on the hardware type.
 	stationInterfaces map[station]string
 }
-
-var linksysWifiReloadBackoffDuration = linksysWifiReloadBackoffSec * time.Second
 
 // NewRadio creates a new Radio instance and initializes its fields to default values.
 func NewRadio() *Radio {
@@ -125,7 +120,7 @@ func (radio *Radio) configure(request ConfigurationRequest) error {
 		if err := radio.configureStations(map[string]StationConfiguration{}); err != nil {
 			return err
 		}
-		time.Sleep(linksysWifiReloadBackoffDuration)
+		time.Sleep(wifiReloadBackoffDuration)
 	}
 	return radio.configureStations(request.StationConfigurations)
 }
@@ -161,12 +156,8 @@ func (radio *Radio) configureStations(stationConfigurations map[string]StationCo
 		if _, err := shell.runCommand("wifi", "reload", radio.device); err != nil {
 			return fmt.Errorf("failed to reload configuration for device %s: %v", radio.device, err)
 		}
+		time.Sleep(wifiReloadBackoffDuration)
 
-		if radio.Type == typeLinksys {
-			// The Linksys AP returns immediately after 'wifi reload' but may not have applied the configuration yet;
-			// sleep for a bit to compensate. (The Vivid AP waits for the configuration to be applied before returning.)
-			time.Sleep(linksysWifiReloadBackoffDuration)
-		}
 		err := radio.updateStationStatuses()
 		if err != nil {
 			return fmt.Errorf("error updating station statuses: %v", err)

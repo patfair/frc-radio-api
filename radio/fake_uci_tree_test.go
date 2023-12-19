@@ -35,6 +35,11 @@ func (tree *fakeUciTree) GetLast(config, section, option string) (string, bool) 
 	return tree.valuesForGet[fmt.Sprintf("%s.%s.%s", config, section, option)], true
 }
 
+func (tree *fakeUciTree) Del(config, section, option string) {
+	tree.valuesFromSet[fmt.Sprintf("%s.%s.%s", config, section, option)] = "***DELETED***"
+	tree.setCount++
+}
+
 func (tree *fakeUciTree) Commit() error {
 	tree.commitCount++
 	return nil
@@ -61,10 +66,6 @@ func (tree *fakeUciTree) GetBool(config, section, option string) (bool, bool) {
 }
 
 func (tree *fakeUciTree) Set(config, section, option string, values ...string) bool {
-	panic("not implemented")
-}
-
-func (tree *fakeUciTree) Del(config, section, option string) {
 	panic("not implemented")
 }
 

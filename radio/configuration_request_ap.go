@@ -47,9 +47,7 @@ func (request ConfigurationRequest) Validate(radio *Radio) error {
 				}
 			}
 		case typeVividHosting:
-			x := (request.Channel - 5) / 8
-			y := (request.Channel - 5) % 8
-			valid = y == 0 && x >= 0 && x <= 28
+			valid = isValid6GhzChannel(request.Channel)
 		}
 		if !valid {
 			return fmt.Errorf("invalid channel for %s: %d", radio.Type.String(), request.Channel)
