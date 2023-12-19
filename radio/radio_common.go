@@ -24,6 +24,12 @@ const (
 	// How long to wait between retries when configuring the radio.
 	retryBackoffSec = 3
 
+	// Minimum length for WPA keys.
+	minWpaKeyLength = 8
+
+	// Maximum length for WPA keys.
+	maxWpaKeyLength = 16
+
 	// Valid characters in the randomly generated salt used to obscure the WPA key.
 	saltCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 

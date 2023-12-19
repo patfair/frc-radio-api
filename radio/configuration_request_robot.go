@@ -22,9 +22,9 @@ func (request ConfigurationRequest) Validate(radio *Radio) error {
 		return fmt.Errorf("invalid team number: %d", request.TeamNumber)
 	}
 
-	if len(request.WpaKey) < 8 {
+	if len(request.WpaKey) < minWpaKeyLength || len(request.WpaKey) > maxWpaKeyLength {
 		return fmt.Errorf(
-			"invalid WPA key length: %d", len(request.WpaKey),
+			"invalid WPA key length: %d (expecting %d-%d)", len(request.WpaKey), minWpaKeyLength, maxWpaKeyLength,
 		)
 	}
 

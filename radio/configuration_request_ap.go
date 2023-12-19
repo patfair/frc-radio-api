@@ -71,9 +71,13 @@ func (request ConfigurationRequest) Validate(radio *Radio) error {
 		if stationConfiguration.Ssid == "" {
 			return fmt.Errorf("SSID for station %s cannot be blank", stationName)
 		}
-		if len(stationConfiguration.WpaKey) < 8 {
+		if len(stationConfiguration.WpaKey) < minWpaKeyLength || len(stationConfiguration.WpaKey) > maxWpaKeyLength {
 			return fmt.Errorf(
-				"invalid WPA key length for station %s: %d", stationName, len(stationConfiguration.WpaKey),
+				"invalid WPA key length for station %s: %d (expecting %d-%d)",
+				stationName,
+				len(stationConfiguration.WpaKey),
+				minWpaKeyLength,
+				maxWpaKeyLength,
 			)
 		}
 	}
