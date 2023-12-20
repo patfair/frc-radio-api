@@ -54,21 +54,21 @@ func TestRadio_setInitialState(t *testing.T) {
 	fakeTree.valuesForGet["wireless.@wifi-iface[0].mode"] = "sta"
 	fakeTree.valuesForGet["wireless.wifi0.channel"] = "1"
 	radio.setInitialState()
-	assert.Equal(t, modeTeamRadio, radio.Mode)
-	assert.Equal(t, 0, radio.Channel)
+	assert.Equal(t, modeTeamRobotRadio, radio.Mode)
+	assert.Equal(t, "", radio.Channel)
 
 	// Test with team access point mode.
 	fakeTree.valuesForGet["wireless.@wifi-iface[0].mode"] = "ap"
 	fakeTree.valuesForGet["wireless.wifi0.channel"] = "36"
 	radio.setInitialState()
 	assert.Equal(t, modeTeamAccessPoint, radio.Mode)
-	assert.Equal(t, 36, radio.Channel)
+	assert.Equal(t, "36", radio.Channel)
 
 	// Test with team access point mode and automatic channel.
 	fakeTree.valuesForGet["wireless.wifi0.channel"] = "auto"
 	radio.setInitialState()
 	assert.Equal(t, modeTeamAccessPoint, radio.Mode)
-	assert.Equal(t, 0, radio.Channel)
+	assert.Equal(t, "auto", radio.Channel)
 }
 
 func TestRadio_handleConfigurationRequest(t *testing.T) {
@@ -86,7 +86,7 @@ func TestRadio_handleConfigurationRequest(t *testing.T) {
 	fakeTree.valuesForGet["wireless.@wifi-iface[0].key"] = "11111111"
 	dummyRequest1 := ConfigurationRequest{TeamNumber: 1, WpaKey: "foo"}
 	dummyRequest2 := ConfigurationRequest{TeamNumber: 2, WpaKey: "bar"}
-	request := ConfigurationRequest{Mode: modeTeamRadio, TeamNumber: 12345, WpaKey: "11111111"}
+	request := ConfigurationRequest{Mode: modeTeamRobotRadio, TeamNumber: 12345, WpaKey: "11111111"}
 	radio.ConfigurationRequestChannel <- dummyRequest2
 	radio.ConfigurationRequestChannel <- request
 	assert.Nil(t, radio.handleConfigurationRequest(dummyRequest1))
@@ -108,8 +108,8 @@ func TestRadio_handleConfigurationRequest(t *testing.T) {
 	assert.Equal(t, "c10cc0a95c29b83a73a3d0730f77bbf852016ea4f08aaf5d4291017c6c23bffd", radio.HashedWpaKey)
 	assert.Equal(t, "mUNERA9rI2cvTK4U", radio.WpaKeySalt)
 	assert.Equal(t, statusActive, radio.Status)
-	assert.Equal(t, modeTeamRadio, radio.Mode)
-	assert.Equal(t, 0, radio.Channel)
+	assert.Equal(t, modeTeamRobotRadio, radio.Mode)
+	assert.Equal(t, "", radio.Channel)
 
 	// Configure to team access point mode with specified channel.
 	fakeShell.reset()
@@ -138,7 +138,7 @@ func TestRadio_handleConfigurationRequest(t *testing.T) {
 	assert.Equal(t, "HomcjcEQvymkzADm", radio.WpaKeySalt)
 	assert.Equal(t, statusActive, radio.Status)
 	assert.Equal(t, modeTeamAccessPoint, radio.Mode)
-	assert.Equal(t, 229, radio.Channel)
+	assert.Equal(t, "229", radio.Channel)
 
 	// Configure to team access point mode with automatic channel.
 	fakeTree.reset()
@@ -147,16 +147,16 @@ func TestRadio_handleConfigurationRequest(t *testing.T) {
 	assert.Nil(t, radio.handleConfigurationRequest(request))
 	assert.Equal(t, fakeTree.valuesFromSet["wireless.wifi0.channel"], "auto")
 	assert.Equal(t, modeTeamAccessPoint, radio.Mode)
-	assert.Equal(t, 0, radio.Channel)
+	assert.Equal(t, "auto", radio.Channel)
 
 	// Configure back to radio mode to ensure status is updated.
 	fakeTree.reset()
 	fakeTree.valuesForGet["wireless.@wifi-iface[0].key"] = "11111111"
-	request = ConfigurationRequest{Mode: modeTeamRadio, TeamNumber: 12345, WpaKey: "11111111"}
+	request = ConfigurationRequest{Mode: modeTeamRobotRadio, TeamNumber: 12345, WpaKey: "11111111"}
 	assert.Nil(t, radio.handleConfigurationRequest(request))
 	assert.Equal(t, fakeTree.valuesFromSet["wireless.wifi0.channel"], "***DELETED***")
-	assert.Equal(t, modeTeamRadio, radio.Mode)
-	assert.Equal(t, 0, radio.Channel)
+	assert.Equal(t, modeTeamRobotRadio, radio.Mode)
+	assert.Equal(t, "", radio.Channel)
 }
 
 func TestRadio_handleConfigurationRequestErrors(t *testing.T) {

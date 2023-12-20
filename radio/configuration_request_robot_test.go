@@ -18,10 +18,10 @@ func TestConfigurationRequest_Validate(t *testing.T) {
 	assert.EqualError(t, err, "invalid operation mode: NONEXISTENT_MODE")
 
 	// Setting channel not allowed in TEAM_RADIO mode.
-	request.Mode = modeTeamRadio
+	request.Mode = modeTeamRobotRadio
 	request.Channel = 21
 	err = request.Validate(radio)
-	assert.EqualError(t, err, "channel cannot be set in TEAM_RADIO mode")
+	assert.EqualError(t, err, "channel cannot be set in TEAM_ROBOT_RADIO mode")
 
 	// Invalid channel.
 	request.Mode = modeTeamAccessPoint
@@ -31,7 +31,7 @@ func TestConfigurationRequest_Validate(t *testing.T) {
 	assert.EqualError(t, err, "invalid 6GHz channel: 36")
 	request.Channel = 0
 	assert.Nil(t, request.Validate(radio))
-	request.Mode = modeTeamRadio
+	request.Mode = modeTeamRobotRadio
 	request.Channel = 0
 
 	// Invalid team number.

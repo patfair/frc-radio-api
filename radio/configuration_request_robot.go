@@ -25,12 +25,12 @@ type ConfigurationRequest struct {
 
 // Validate checks that all parameters within the configuration request have valid values.
 func (request ConfigurationRequest) Validate(radio *Radio) error {
-	if request.Mode != modeTeamRadio && request.Mode != modeTeamAccessPoint {
+	if request.Mode != modeTeamRobotRadio && request.Mode != modeTeamAccessPoint {
 		return fmt.Errorf("invalid operation mode: %s", request.Mode)
 	}
 
-	if request.Mode == modeTeamRadio && request.Channel != 0 {
-		return fmt.Errorf("channel cannot be set in %s mode", modeTeamRadio)
+	if request.Mode == modeTeamRobotRadio && request.Channel != 0 {
+		return fmt.Errorf("channel cannot be set in %s mode", modeTeamRobotRadio)
 	}
 	if request.Mode == modeTeamAccessPoint && request.Channel != 0 && !isValid6GhzChannel(request.Channel) {
 		return fmt.Errorf("invalid 6GHz channel: %d", request.Channel)
