@@ -61,6 +61,7 @@ func (web *WebServer) newRouter() http.Handler {
 	router.HandleFunc("/health", web.healthHandler).Methods("GET")
 	router.HandleFunc("/status", web.statusHandler).Methods("GET")
 	router.HandleFunc("/configuration", web.configurationHandler).Methods("POST")
+	router.HandleFunc("/firmware", web.firmwareHandler).Methods("POST")
 	return router
 }
 
@@ -84,8 +85,9 @@ func (web *WebServer) isAuthorized(r *http.Request) bool {
 	return password == web.password
 }
 
-// handleWebErr writes the given error out as plain text with a status code of 500.
-func handleWebErr(w http.ResponseWriter, err error) {
-	log.Printf("HTTP request error: %v", err)
-	http.Error(w, "Internal server error: "+err.Error(), 500)
+// handleWebErr writes the given error out as plain text with the given status code.
+func handleWebErr(w http.ResponseWriter, err error, statusCode int) {
+	message := fmt.Sprintf("HTTP request error %d: %v", statusCode, err)
+	log.Println(message)
+	http.Error(w, message, statusCode)
 }

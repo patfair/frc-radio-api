@@ -2,6 +2,7 @@ package web
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/patfair/frc-radio-api/radio"
 	"log"
@@ -11,23 +12,21 @@ import (
 // configurationHandler receives a JSON request to configure the radio and adds it to the asynchronous queue.
 func (web *WebServer) configurationHandler(w http.ResponseWriter, r *http.Request) {
 	if !web.isAuthorized(r) {
-		http.Error(
-			w, "Not authorized; must provide 'Authorization: Bearer [password]' header.", http.StatusUnauthorized,
+		handleWebErr(
+			w,
+			errors.New("not authorized; must provide 'Authorization: Bearer [password]' header"),
+			http.StatusUnauthorized,
 		)
 		return
 	}
 
 	var request radio.ConfigurationRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		errorMessage := "Error: invalid JSON: " + err.Error()
-		log.Println(errorMessage)
-		http.Error(w, errorMessage, http.StatusBadRequest)
+		handleWebErr(w, fmt.Errorf("invalid JSON: %v", err), http.StatusBadRequest)
 		return
 	}
 	if err := request.Validate(web.radio); err != nil {
-		errorMessage := "Error: " + err.Error()
-		log.Println(errorMessage)
-		http.Error(w, errorMessage, http.StatusBadRequest)
+		handleWebErr(w, fmt.Errorf("invalid configuration: %v", err), http.StatusBadRequest)
 		return
 	}
 
