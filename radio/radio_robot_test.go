@@ -20,6 +20,7 @@ func TestNewRadio(t *testing.T) {
 func TestRadio_isStarted(t *testing.T) {
 	fakeShell := newFakeShell(t)
 	shell = fakeShell
+	fakeShell.commandOutput["sh -c source /etc/openwrt_release && echo $DISTRIB_DESCRIPTION"] = ""
 	radio := NewRadio()
 
 	// Radio is not started.
@@ -40,6 +41,9 @@ func TestRadio_setInitialState(t *testing.T) {
 	rand.Seed(0)
 	fakeTree := newFakeUciTree()
 	uciTree = fakeTree
+	fakeShell := newFakeShell(t)
+	shell = fakeShell
+	fakeShell.commandOutput["sh -c source /etc/openwrt_release && echo $DISTRIB_DESCRIPTION"] = ""
 	radio := NewRadio()
 
 	fakeTree.valuesForGet["wireless.@wifi-iface[0].ssid"] = "12345"
@@ -78,6 +82,7 @@ func TestRadio_handleConfigurationRequest(t *testing.T) {
 	fakeShell := newFakeShell(t)
 	shell = fakeShell
 	wifiReloadBackoffDuration = 10 * time.Millisecond
+	fakeShell.commandOutput["sh -c source /etc/openwrt_release && echo $DISTRIB_DESCRIPTION"] = ""
 	radio := NewRadio()
 
 	// Configure to team radio mode.
@@ -166,6 +171,7 @@ func TestRadio_handleConfigurationRequestErrors(t *testing.T) {
 	shell = fakeShell
 	retryBackoffDuration = 10 * time.Millisecond
 	wifiReloadBackoffDuration = 10 * time.Millisecond
+	fakeShell.commandOutput["sh -c source /etc/openwrt_release && echo $DISTRIB_DESCRIPTION"] = ""
 	radio := NewRadio()
 
 	// wifi reload fails.

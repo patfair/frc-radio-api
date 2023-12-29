@@ -8,6 +8,7 @@ import (
 	"log"
 	"math/rand"
 	"regexp"
+	"strings"
 	"time"
 )
 
@@ -97,6 +98,24 @@ func TriggerFirmwareUpdate(firmwarePath string) {
 		log.Printf("Error running sysupgrade: %v", err)
 	}
 	log.Println("Started sysupgrade successfully.")
+}
+
+// determineAndSetVersion determines the firmware version of the radio.
+func (radio *Radio) determineAndSetVersion() {
+	model, _ := uciTree.GetLast("system", "@system[0]", "model")
+	var version string
+	var err error
+	if strings.Contains(model, "VH") {
+		version, err = shell.runCommand("cat", "/etc/config/vh_firmware")
+	} else {
+		version, err = shell.runCommand("sh", "-c", "source /etc/openwrt_release && echo $DISTRIB_DESCRIPTION")
+	}
+	if err != nil {
+		log.Printf("Error determining firmware version: %v", err)
+		radio.Version = "unknown"
+	} else {
+		radio.Version = strings.TrimSpace(version)
+	}
 }
 
 func (radio *Radio) handleConfigurationRequest(request ConfigurationRequest) error {

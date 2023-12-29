@@ -48,6 +48,9 @@ type Radio struct {
 	// Enum representing the current configuration stage of the radio.
 	Status radioStatus `json:"status"`
 
+	// Version of the radio software.
+	Version string `json:"version"`
+
 	// Queue for receiving and buffering configuration requests.
 	ConfigurationRequestChannel chan ConfigurationRequest `json:"-"`
 }
@@ -66,10 +69,13 @@ const (
 
 // NewRadio creates a new Radio instance and initializes its fields to default values.
 func NewRadio() *Radio {
-	return &Radio{
+	radio := Radio{
 		Status:                      statusBooting,
 		ConfigurationRequestChannel: make(chan ConfigurationRequest, configurationRequestBufferSize),
 	}
+	radio.determineAndSetVersion()
+
+	return &radio
 }
 
 // isStarted returns true if the Wi-Fi interface is up and running.

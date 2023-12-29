@@ -28,6 +28,9 @@ type Radio struct {
 	// Map of team station names to their current status.
 	StationStatuses map[string]*StationStatus `json:"stationStatuses"`
 
+	// Version of the radio software.
+	Version string `json:"version"`
+
 	// Queue for receiving and buffering configuration requests.
 	ConfigurationRequestChannel chan ConfigurationRequest `json:"-"`
 
@@ -52,6 +55,7 @@ func NewRadio() *Radio {
 		log.Fatal("Unable to determine radio hardware type; exiting.")
 	}
 	log.Printf("Detected radio hardware type: %v", radio.Type)
+	radio.determineAndSetVersion()
 
 	// Initialize the device and station interface names that are dependent on the hardware type.
 	switch radio.Type {

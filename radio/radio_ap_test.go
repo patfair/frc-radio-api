@@ -74,6 +74,7 @@ func TestNewRadio(t *testing.T) {
 func TestRadio_isStarted(t *testing.T) {
 	fakeShell := newFakeShell(t)
 	shell = fakeShell
+	fakeShell.commandOutput["sh -c source /etc/openwrt_release && echo $DISTRIB_DESCRIPTION"] = ""
 	radio := NewRadio()
 
 	// Radio is not started.
@@ -96,6 +97,7 @@ func TestRadio_setInitialState(t *testing.T) {
 	fakeTree.valuesForGet["system.@system[0].model"] = "VH-109(AP)"
 	fakeShell := newFakeShell(t)
 	shell = fakeShell
+	fakeShell.commandOutput["cat /etc/config/vh_firmware"] = ""
 	radio := NewRadio()
 
 	fakeTree.valuesForGet["wireless.wifi1.channel"] = "23"
@@ -122,6 +124,7 @@ func TestRadio_handleConfigurationRequestVividHosting(t *testing.T) {
 	fakeShell := newFakeShell(t)
 	shell = fakeShell
 	wifiReloadBackoffDuration = 10 * time.Millisecond
+	fakeShell.commandOutput["cat /etc/config/vh_firmware"] = ""
 	radio := NewRadio()
 
 	fakeShell.commandOutput["wifi reload wifi1"] = ""
@@ -195,6 +198,7 @@ func TestRadio_handleConfigurationRequestLinksys(t *testing.T) {
 	fakeShell := newFakeShell(t)
 	shell = fakeShell
 	wifiReloadBackoffDuration = 100 * time.Millisecond
+	fakeShell.commandOutput["sh -c source /etc/openwrt_release && echo $DISTRIB_DESCRIPTION"] = ""
 	radio := NewRadio()
 
 	fakeShell.commandOutput["wifi reload radio0"] = ""
@@ -293,6 +297,7 @@ func TestRadio_handleConfigurationRequestErrors(t *testing.T) {
 	shell = fakeShell
 	retryBackoffDuration = 10 * time.Millisecond
 	wifiReloadBackoffDuration = 10 * time.Millisecond
+	fakeShell.commandOutput["cat /etc/config/vh_firmware"] = ""
 	radio := NewRadio()
 
 	// wifi reload fails.
@@ -355,11 +360,12 @@ func TestRadio_handleConfigurationRequestErrors(t *testing.T) {
 func TestRadio_updateStationMonitoring(t *testing.T) {
 	fakeShell := newFakeShell(t)
 	shell = fakeShell
+	fakeShell.commandOutput["sh -c source /etc/openwrt_release && echo $DISTRIB_DESCRIPTION"] = ""
 	radio := NewRadio()
 
 	// No teams assigned.
 	radio.updateMonitoring()
-	assert.Empty(t, fakeShell.commandsRun)
+	assert.Equal(t, 1, len(fakeShell.commandsRun))
 
 	// Some teams assigned.
 	fakeShell.reset()

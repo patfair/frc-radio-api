@@ -77,7 +77,8 @@ $ curl http://10.0.100.2:8081/status
     },
     "red2": null,
     "red3": null
-  }
+  },
+  "version": "1.2.3"
 }
 ```
 A null value for a team station indicates that no team is assigned.
@@ -135,7 +136,8 @@ $ curl http://10.12.34.1:8081/status
   "ssid": "1234",
   "hashedWpaKey": "d40e29b90743ddf71c75bfaedab1333e23bf43eb29f5c8c1ba55756e96e99d84",
   "wpaKeySalt": "DzCKbEIu53vCmf0p",
-  "status": "ACTIVE"
+  "status": "ACTIVE",
+  "version": "1.2.3"
 }
 ```
 See the access point API documentation regarding the `hashedWpaKey` and `wpaKeySalt` fields.
