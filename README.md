@@ -160,3 +160,44 @@ $ curl http://10.56.78.1:8081/status
   "status": "ACTIVE"
 }
 ```
+
+## Updating Firmware Via the API
+Both the Access Point and Robot Radio APIs support updating the firmware of the device via the `/firmware` endpoint. The
+endpoint uses the same authentication scheme as described above.
+
+The endpoint can be configured to only accept firmware files that are encrypted with an asymmetric key pair via the
+[age](https://github.com/FiloSottile/age) tool. The party creating new firmware builds generates a key pair and
+distributes the secret (decryption) key with the API server. They can then distribute new firmware builds by encrypting
+them with their public key (which they keep secret) and making them available for download (along with the
+checksum of the unencrypted firmware). Then, when it receives a new firmware file, the API server on
+the radio decrypts it and verifies its checksum before flashing the radio.
+
+The `/firmware` endpoint accepts a multipart/form-data request with a `file` parameter containing the firmware file to
+be flashed, and a `checksum` parameter containing the expected SHA-256 checksum of the decrypted firmware file.
+
+### Setting Up the API Server
+To set up the API server to accept encrypted firmware files, first install [age](https://github.com/FiloSottile/age)
+then generate a key pair using `age-keygen`:
+```
+$ age-keygen
+# created: 2023-12-29T09:52:33-08:00
+# public key: age1r9x7t8rzy7l3yccvtd8q3thlt5kvy5fmd58t4s0nqdkyvp9ama9q3swxt6
+AGE-SECRET-KEY-12D95QEN2T7VZAEG6KKS2YFE7K26YZRZH48Y32YMJF6YAKJFFTM4QQDCW7F
+```
+
+Copy the secret key to `/root/frc-radio-api-firmware-key.txt` on the radio (or use the install scripts as above
+which will prompt for the key). The API server will automatically detect the presence of the key file and enable
+decryption of firmware files. If the key file is blank, the API server will accept unencrypted firmware files.
+
+### Encrypting Firmware Files
+To encrypt a firmware file, use the `age` tool:
+```
+$ age --encrypt -o firmware-encrypted.bin -r age1r9x7t8rzy7l3yccvtd8q3thlt5kvy5fmd58t4s0nqdkyvp9ama9q3swxt6 firmware-unencrypted.tar
+```
+
+### Uploading Firmware to the API
+An encrypted firmware file can be uploaded to the API server as follows:
+```
+$ curl -v -XPOST http://10.0.100.2:8081/firmware -F 'file=@firmware-encrypted.bin' -F 'checksum=84fbed65950291a4f0bb252387c651dc0937df32108e952c81bf689ff7c52665'
+New firmware received and will be applied now.
+```
