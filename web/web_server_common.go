@@ -1,6 +1,7 @@
 package web
 
 import (
+	"filippo.io/age"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/patfair/frc-radio-api/radio"
@@ -10,19 +11,24 @@ import (
 	"strings"
 )
 
-// TCP port that the web server listens on.
-const port = 8081
+const (
+	// TCP port that the web server listens on.
+	port = 8081
 
-// Path to the optional file containing the password for the API.
-const passwordFilePath = "/root/frc-radio-api-password.txt"
+	// Path to the optional file containing the password for the API.
+	passwordFilePath = "/root/frc-radio-api-password.txt"
 
-// Interval between attempts to get the IP address of the radio on startup.
-const ipAddressPollIntervalSec = 3
+	// Interval between attempts to get the IP address of the radio on startup.
+	ipAddressPollIntervalSec = 3
+)
 
 // WebServer holds shared state across requests to the API.
 type WebServer struct {
 	// Password for authorizing requests to the API. If blank, no authorization is required.
 	password string
+
+	// Private key for decrypting new firmware. If nil, only unencrypted firmware can be uploaded.
+	firmwareDecryptionKey *age.X25519Identity
 
 	// Device that the API provides access to.
 	radio *radio.Radio
@@ -35,7 +41,7 @@ func NewWebServer(radio *radio.Radio) *WebServer {
 
 // Run starts the HTTP server and blocks until the process terminates, serving requests.
 func (web *WebServer) Run() {
-	web.setUpAuthorization()
+	web.setUpSecrets()
 
 	listenAddress := getListenAddress()
 	log.Printf("Server listening on %s\n", listenAddress)
@@ -44,14 +50,25 @@ func (web *WebServer) Run() {
 	}
 }
 
-// setUpAuthorization reads the password from the password file, if it exists.
-func (web *WebServer) setUpAuthorization() {
+// setUpSecrets reads the password and firmware decryption keys from their respective files, if they exist.
+func (web *WebServer) setUpSecrets() {
 	passwordBytes, err := os.ReadFile(passwordFilePath)
 	if err != nil {
 		log.Printf("Error opening password file; authorization disabled: %v", err)
-		return
+	} else {
+		web.password = strings.TrimSpace(string(passwordBytes))
 	}
-	web.password = strings.TrimSpace(string(passwordBytes))
+
+	privateKeyBytes, err := os.ReadFile(firmwareDecryptionKeyFilePath)
+	if err != nil {
+		log.Printf("Error opening encryption key file; firmware decryption disabled: %v", err)
+	} else if len(privateKeyBytes) != 0 {
+		privateKey := strings.TrimSpace(string(privateKeyBytes))
+		web.firmwareDecryptionKey, err = age.ParseX25519Identity(privateKey)
+		if err != nil {
+			log.Printf("Error parsing encryption key; firmware decryption disabled: %v", err)
+		}
+	}
 }
 
 // newRouter sets up the mapping between URLs and handlers.

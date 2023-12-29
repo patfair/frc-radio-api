@@ -10,6 +10,7 @@ API_PORT=8081
 read -p "Device IP address [$DEFAULT_TARGET]: " TARGET
 TARGET=${TARGET:-$DEFAULT_TARGET}
 read -p "Set API password (leave blank to disable): " PASSWORD
+read -p "Set firmware decryption secret key (leave blank to disable): " FIRMWARE_KEY
 
 # Optionally build the binary.
 if [ "$1" = "--build" ]; then
@@ -44,6 +45,9 @@ scp -O $SSH_ARGS access-point.init $USER@$TARGET:/etc/init.d/frc-radio-api
 
 # Create the API password file.
 ssh $SSH_ARGS $USER@$TARGET "echo $PASSWORD > /root/frc-radio-api-password.txt"
+
+# Create the firmware decryption secret key file.
+ssh $SSH_ARGS $USER@$TARGET "echo $FIRMWARE_KEY > /root/frc-radio-api-firmware-key.txt"
 
 # Comment out the unnecessary 'wifi detect' command in the boot script; it just delays the Ethernet interface bring-up.
 ssh $SSH_ARGS $USER@$TARGET "sed -E 's/^\t(\/sbin\/wifi detect)/\t#\1/' -i /etc/init.d/boot"

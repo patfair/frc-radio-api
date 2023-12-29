@@ -45,6 +45,19 @@ func (shell *fakeShell) runCommand(command string, args ...string) (string, erro
 	return "", nil
 }
 
+func (shell *fakeShell) startCommand(command string, args ...string) error {
+	fullCommand := strings.Join(append([]string{command}, args...), " ")
+	shell.commandsRun[fullCommand] = struct{}{}
+	if _, ok := shell.commandOutput[fullCommand]; ok {
+		return nil
+	}
+	if err, ok := shell.commandErrors[fullCommand]; ok {
+		return err
+	}
+	assert.Fail(shell.t, "unexpected command: "+fullCommand)
+	return nil
+}
+
 // reset clears the state of the fake shell.
 func (shell *fakeShell) reset() {
 	shell.commandsRun = make(map[string]struct{})

@@ -1,6 +1,9 @@
 package web
 
 import (
+	"bytes"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -48,6 +51,26 @@ func (web *WebServer) postHttpResponseWithHeaders(
 	for key, value := range headers {
 		req.Header.Set(key, value)
 	}
+	web.newRouter().ServeHTTP(recorder, req)
+	return recorder
+}
+
+// postFileHttpResponse stubs the webserver, sends a POST request to the given path with the given file and other
+// fields, and returns the response, for use in testing.
+func (web *WebServer) postFileHttpResponse(
+	path string, paramName string, fileContent []byte, otherFields map[string]string,
+) *httptest.ResponseRecorder {
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+	part, _ := writer.CreateFormFile(paramName, "file.ext")
+	io.Copy(part, bytes.NewReader(fileContent))
+	for key, value := range otherFields {
+		writer.WriteField(key, value)
+	}
+	writer.Close()
+	recorder := httptest.NewRecorder()
+	req, _ := http.NewRequest("POST", path, body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
 	web.newRouter().ServeHTTP(recorder, req)
 	return recorder
 }

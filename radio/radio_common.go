@@ -89,6 +89,16 @@ func (radio *Radio) Run() {
 	}
 }
 
+// TriggerFirmwareUpdate initiates the firmware update process using the given firmware file. This method may not return
+// cleanly even if successful since the update utility will terminate this process.
+func TriggerFirmwareUpdate(firmwarePath string) {
+	log.Printf("Attempting to trigger firmware update using %s", firmwarePath)
+	if err := shell.startCommand("sysupgrade", "-n", firmwarePath); err != nil {
+		log.Printf("Error running sysupgrade: %v", err)
+	}
+	log.Println("Started sysupgrade successfully.")
+}
+
 func (radio *Radio) handleConfigurationRequest(request ConfigurationRequest) error {
 	// If there are multiple requests queued up, only consider the latest one.
 	numExtraRequests := len(radio.ConfigurationRequestChannel)
