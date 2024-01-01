@@ -21,6 +21,9 @@ type ConfigurationRequest struct {
 
 	// Team-specific WPA key. Must be at least eight characters long.
 	WpaKey string `json:"wpaKey"`
+
+	// Team-specific WPA 2.4 key. Must be at least eight characters long.
+	WpaTeamKey string `json:"wpaTeamKey"`
 }
 
 // Validate checks that all parameters within the configuration request have valid values.
@@ -43,6 +46,12 @@ func (request ConfigurationRequest) Validate(radio *Radio) error {
 	if len(request.WpaKey) < minWpaKeyLength || len(request.WpaKey) > maxWpaKeyLength {
 		return fmt.Errorf(
 			"invalid WPA key length: %d (expecting %d-%d)", len(request.WpaKey), minWpaKeyLength, maxWpaKeyLength,
+		)
+	}
+
+	if len(request.WpaTeamKey) < minWpaKeyLength || len(request.WpaTeamKey) > maxWpaKeyLength {
+		return fmt.Errorf(
+			"invalid WPA Team key length: %d (expecting %d-%d)", len(request.WpaTeamKey), minWpaKeyLength, maxWpaKeyLength,
 		)
 	}
 

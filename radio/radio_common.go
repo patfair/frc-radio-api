@@ -106,7 +106,7 @@ func (radio *Radio) determineAndSetVersion() {
 	var version string
 	var err error
 	if strings.Contains(model, "VH") {
-		version, err = shell.runCommand("cat", "/etc/config/vh_firmware")
+		version, err = shell.runCommand("cat", "/etc/vh_firmware")
 	} else {
 		version, err = shell.runCommand("sh", "-c", "source /etc/openwrt_release && echo $DISTRIB_DESCRIPTION")
 	}

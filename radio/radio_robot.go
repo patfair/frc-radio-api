@@ -12,14 +12,23 @@ import (
 )
 
 const (
-	// Name of the radio's Wi-Fi device.
-	radioDevice = "wifi0"
+	// Name of the 2.4GHz radio's Wi-Fi device.
+	radioTeamDevice = "wifi0"
 
-	// Name of the radio's Wi-Fi interface.
-	radioInterface = "ath0"
+	// Name of the 2.4GHz radio's Wi-Fi interface.
+	radioTeamInterface = "ath0"
 
-	// Index of the radio's Wi-Fi interface section in the UCI configuration.
-	radioInterfaceIndex = 0
+	// Index of the 2.4GHz radio's Wi-Fi interface section in the UCI configuration.
+	radioTeamInterfaceIndex = 0
+
+	// Name of the 6GHz radio's Wi-Fi device.
+	radioDevice = "wifi1"
+
+	// Name of the 6GHz radio's Wi-Fi interface.
+	radioInterface = "ath1"
+
+	// Index of the 6GHz radio's Wi-Fi interface section in the UCI configuration.
+	radioInterfaceIndex = 1
 )
 
 // Radio holds the current state of the access point's configuration and any robot radios connected to it.
@@ -110,11 +119,16 @@ func (radio *Radio) configure(request ConfigurationRequest) error {
 		// Handle Wi-Fi.
 		ssid := strconv.Itoa(request.TeamNumber)
 		wifiInterface := fmt.Sprintf("@wifi-iface[%d]", radioInterfaceIndex)
+		wifiTeamInterface := fmt.Sprintf("@wifi-iface[%d]", radioTeamInterfaceIndex)
 		uciTree.SetType("wireless", wifiInterface, "ssid", uci.TypeOption, ssid)
+		uciTree.SetType("wireless", wifiTeamInterface, "ssid", uci.TypeOption, fmt.Sprintf("FRC-%d",request.TeamNumber))
 		uciTree.SetType("wireless", wifiInterface, "key", uci.TypeOption, request.WpaKey)
+		uciTree.SetType("wireless", wifiTeamInterface, "key", uci.TypeOption, request.WpaTeamKey)
 		if request.Mode == modeTeamRobotRadio {
 			radio.Channel = ""
 			uciTree.SetType("wireless", wifiInterface, "mode", uci.TypeOption, "sta")
+			uciTree.SetType("wireless", wifiTeamInterface, "mode", uci.TypeOption, "ap")
+			uciTree.SetType("wireless", radioTeamDevice, "channel", uci.TypeOption, "auto")
 			uciTree.Del("wireless", radioDevice, "channel")
 		} else {
 			uciTree.SetType("wireless", wifiInterface, "mode", uci.TypeOption, "ap")
@@ -129,6 +143,8 @@ func (radio *Radio) configure(request ConfigurationRequest) error {
 
 		// Handle DHCP.
 		teamPartialIp := fmt.Sprintf("%d.%d", request.TeamNumber/100, request.TeamNumber%100)
+		uciTree.DelSection("dhcp", "@host[-1]")
+		uciTree.AddSection("dhcp", "@host[0]","")
 		uciTree.SetType("dhcp", "lan", "dhcp_option", uci.TypeList, fmt.Sprintf("3,10.%s.4", teamPartialIp))
 		uciTree.SetType("dhcp", "@host[0]", "name", uci.TypeOption, fmt.Sprintf("roboRIO-%d-FRC", request.TeamNumber))
 		uciTree.SetType("dhcp", "@host[0]", "ip", uci.TypeOption, fmt.Sprintf("10.%s.2", teamPartialIp))
