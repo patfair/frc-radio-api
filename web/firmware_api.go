@@ -18,7 +18,10 @@ import (
 
 const (
 	// Maximum size of the firmware file that can be uploaded.
-	maxRequestSizeBytes = 10 * 1024 * 1024 // 10 MB
+	maxRequestSizeBytes = 64 * 1024 * 1024 // 64 MB
+
+	// Maximum size of the firmware file that can be held in memory at once (based on device memory limitations).
+	maxMemorySizeBytes = 20 * 1024 * 1024 // 20 MB
 
 	// Path to the optional file containing the private key for decrypting new firmware.
 	firmwareDecryptionKeyFilePath = "/root/frc-radio-api-firmware-key.txt"
@@ -42,6 +45,10 @@ func (web *WebServer) firmwareHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Prevent a malicious client from uploading a huge file and filling up the disk.
 	r.Body = http.MaxBytesReader(w, r.Body, maxRequestSizeBytes)
+	if err := r.ParseMultipartForm(maxMemorySizeBytes); err != nil {
+		handleWebErr(w, fmt.Errorf("error parsing multipart form: %v", err), http.StatusBadRequest)
+		return
+	}
 
 	file, _, err := r.FormFile("file")
 	if err != nil {
