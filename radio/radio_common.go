@@ -94,6 +94,15 @@ func (radio *Radio) Run() {
 // cleanly even if successful since the update utility will terminate this process.
 func TriggerFirmwareUpdate(firmwarePath string) {
 	log.Printf("Attempting to trigger firmware update using %s", firmwarePath)
+	
+	//Blink the SYS led to indicate we're loading firmware
+	model, _ := uciTree.GetLast("system", "@system[0]", "model")
+	if strings.Contains(model, "VH") {
+		shell.runCommand("sh", "-c", "kill $(ps | grep fms_check.sh | grep -v grep | awk '{print $1}')")
+		shell.runCommand("sh", "-c", "echo timer > /sys/class/leds/sys/trigger")
+		shell.runCommand("sh", "-c", "echo 50 > /sys/class/leds/sys/delay_on && echo 50 > /sys/class/leds/sys/delay_off")
+	}
+
 	if err := shell.startCommand("sysupgrade", "-n", firmwarePath); err != nil {
 		log.Printf("Error running sysupgrade: %v", err)
 	}
