@@ -97,7 +97,7 @@ func TestRadio_setInitialState(t *testing.T) {
 	fakeTree.valuesForGet["system.@system[0].model"] = "VH-109(AP)"
 	fakeShell := newFakeShell(t)
 	shell = fakeShell
-	fakeShell.commandOutput["cat /etc/config/vh_firmware"] = ""
+	fakeShell.commandOutput["cat /etc/vh_firmware"] = ""
 	radio := NewRadio()
 
 	fakeTree.valuesForGet["wireless.wifi1.channel"] = "23"
@@ -124,7 +124,7 @@ func TestRadio_handleConfigurationRequestVividHosting(t *testing.T) {
 	fakeShell := newFakeShell(t)
 	shell = fakeShell
 	wifiReloadBackoffDuration = 10 * time.Millisecond
-	fakeShell.commandOutput["cat /etc/config/vh_firmware"] = ""
+	fakeShell.commandOutput["cat /etc/vh_firmware"] = ""
 	radio := NewRadio()
 
 	fakeShell.commandOutput["wifi reload wifi1"] = ""
@@ -297,7 +297,7 @@ func TestRadio_handleConfigurationRequestErrors(t *testing.T) {
 	shell = fakeShell
 	retryBackoffDuration = 10 * time.Millisecond
 	wifiReloadBackoffDuration = 10 * time.Millisecond
-	fakeShell.commandOutput["cat /etc/config/vh_firmware"] = ""
+	fakeShell.commandOutput["cat /etc/vh_firmware"] = ""
 	radio := NewRadio()
 
 	// wifi reload fails.

@@ -30,7 +30,7 @@ func TestRadio_determineAndSetVersion(t *testing.T) {
 
 	// Vivid-Hosting success case.
 	fakeTree.valuesForGet["system.@system[0].model"] = "VH-109(AP)"
-	fakeShell.commandOutput["cat /etc/config/vh_firmware"] = "\tVH version 1.2.3 \n"
+	fakeShell.commandOutput["cat /etc/vh_firmware"] = "\tVH version 1.2.3 \n"
 	radio := Radio{}
 	radio.determineAndSetVersion()
 	assert.Equal(t, "VH version 1.2.3", radio.Version)
@@ -39,7 +39,7 @@ func TestRadio_determineAndSetVersion(t *testing.T) {
 	fakeTree.reset()
 	fakeTree.valuesForGet["system.@system[0].model"] = "VH-109(AP)"
 	fakeShell.reset()
-	fakeShell.commandErrors["cat /etc/config/vh_firmware"] = errors.New("oops")
+	fakeShell.commandErrors["cat /etc/vh_firmware"] = errors.New("oops")
 	radio = Radio{}
 	radio.determineAndSetVersion()
 	assert.Equal(t, "unknown", radio.Version)

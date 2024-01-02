@@ -48,7 +48,7 @@ func (web *WebServer) firmwareHandler(w http.ResponseWriter, r *http.Request) {
 
     err := r.ParseMultipartForm(maxMultipartFormChunk)
     if err != nil {
-		handleWebErr(w, fmt.Errorf("Multipart file error: %v", err), http.StatusBadRequest)
+		handleWebErr(w, fmt.Errorf("missing or invalid firmware file: %v", err), http.StatusBadRequest)
         return
     }
 
