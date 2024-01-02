@@ -94,7 +94,7 @@ func (radio *Radio) Run() {
 // cleanly even if successful since the update utility will terminate this process.
 func TriggerFirmwareUpdate(firmwarePath string) {
 	log.Printf("Attempting to trigger firmware update using %s", firmwarePath)
-	
+
 	//Blink the SYS led to indicate we're loading firmware
 	model, _ := uciTree.GetLast("system", "@system[0]", "model")
 	if strings.Contains(model, "VH") {

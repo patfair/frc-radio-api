@@ -121,10 +121,10 @@ func (radio *Radio) configure(request ConfigurationRequest) error {
 		wifiInterface := fmt.Sprintf("@wifi-iface[%d]", radioInterfaceIndex)
 		wifiTeamInterface := fmt.Sprintf("@wifi-iface[%d]", radioTeamInterfaceIndex)
 		uciTree.SetType("wireless", wifiInterface, "ssid", uci.TypeOption, ssid)
-		uciTree.SetType("wireless", wifiTeamInterface, "ssid", uci.TypeOption, fmt.Sprintf("FRC-%d",request.TeamNumber))
+		uciTree.SetType("wireless", wifiTeamInterface, "ssid", uci.TypeOption, fmt.Sprintf("FRC-%d", request.TeamNumber))
 		uciTree.SetType("wireless", wifiInterface, "key", uci.TypeOption, request.WpaKey)
 		uciTree.SetType("wireless", wifiTeamInterface, "key", uci.TypeOption, request.WpaTeamKey)
-		
+
 		teamPartialIp := fmt.Sprintf("%d.%d", request.TeamNumber/100, request.TeamNumber%100)
 		if request.Mode == modeTeamRobotRadio {
 			radio.Channel = ""
@@ -153,11 +153,10 @@ func (radio *Radio) configure(request ConfigurationRequest) error {
 
 		// Handle DHCP.
 		uciTree.DelSection("dhcp", "@host[-1]")
-		uciTree.AddSection("dhcp", "@host[0]","")
+		uciTree.AddSection("dhcp", "@host[0]", "")
 		uciTree.SetType("dhcp", "lan", "dhcp_option", uci.TypeList, fmt.Sprintf("3,10.%s.4", teamPartialIp))
 		uciTree.SetType("dhcp", "@host[0]", "name", uci.TypeOption, fmt.Sprintf("roboRIO-%d-FRC", request.TeamNumber))
 		uciTree.SetType("dhcp", "@host[0]", "ip", uci.TypeOption, fmt.Sprintf("10.%s.2", teamPartialIp))
-
 
 		if err := uciTree.Commit(); err != nil {
 			return fmt.Errorf("failed to commit configuration: %v", err)
