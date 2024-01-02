@@ -45,8 +45,18 @@ func TestWeb_firmwareHandlerInvalidInput(t *testing.T) {
 	ap := radio.NewRadio()
 	web := NewWebServer(ap)
 
+	// Wrong content type.
+	recorder := web.postHttpResponseWithHeaders("/firmware", "", map[string]string{"Content-Type": "text/plain"})
+	assert.Equal(t, 400, recorder.Code)
+	assert.Contains(t, recorder.Body.String(), "Content-Type isn't multipart/form-data")
+
 	// Missing file.
-	recorder := web.postHttpResponse("/firmware", "")
+	recorder = web.postFileHttpResponse(
+		"/firmware",
+		"wrongfile",
+		[]byte("unencrypted firmware content\n"),
+		map[string]string{},
+	)
 	assert.Equal(t, 400, recorder.Code)
 	assert.Contains(t, recorder.Body.String(), "missing or invalid firmware file")
 
