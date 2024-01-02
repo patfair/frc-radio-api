@@ -12,7 +12,7 @@ func TestConfigurationRequest_Validate(t *testing.T) {
 	radio := &Radio{}
 
 	// Invalid operation mode.
-	request := ConfigurationRequest{TeamNumber: 254, WpaKey: "12345678"}
+	request := ConfigurationRequest{TeamNumber: 254, WpaKey6: "12345678", WpaKey24: "87654321"}
 	request.Mode = "NONEXISTENT_MODE"
 	err := request.Validate(radio)
 	assert.EqualError(t, err, "invalid operation mode: NONEXISTENT_MODE")
@@ -42,15 +42,25 @@ func TestConfigurationRequest_Validate(t *testing.T) {
 	err = request.Validate(radio)
 	assert.EqualError(t, err, "invalid team number: 25500")
 
-	// Too-short WPA key.
+	// Too-short 6GHz WPA key.
 	request.TeamNumber = 254
-	request.WpaKey = "1234567"
+	request.WpaKey6 = "1234567"
 	err = request.Validate(radio)
-	assert.EqualError(t, err, "invalid WPA key length: 7 (expecting 8-16)")
+	assert.EqualError(t, err, "invalid wpaKey6 length: 7 (expecting 8-16)")
 
-	// Too-long WPA key.
-	request.TeamNumber = 254
-	request.WpaKey = "12345678123456789"
+	// Too-long 6GHz WPA key.
+	request.WpaKey6 = "12345678123456789"
 	err = request.Validate(radio)
-	assert.EqualError(t, err, "invalid WPA key length: 17 (expecting 8-16)")
+	assert.EqualError(t, err, "invalid wpaKey6 length: 17 (expecting 8-16)")
+
+	// Too-short 2.4GHz WPA key.
+	request.WpaKey6 = "12345678"
+	request.WpaKey24 = "1234567"
+	err = request.Validate(radio)
+	assert.EqualError(t, err, "invalid wpaKey24 length: 7 (expecting 8-16)")
+
+	// Too-long 2.4GHz WPA key.
+	request.WpaKey24 = "12345678123456789"
+	err = request.Validate(radio)
+	assert.EqualError(t, err, "invalid wpaKey24 length: 17 (expecting 8-16)")
 }

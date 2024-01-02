@@ -19,11 +19,11 @@ type ConfigurationRequest struct {
 	// Team number to configure the radio for. Must be between 1 and 25499.
 	TeamNumber int `json:"teamNumber"`
 
-	// Team-specific WPA key. Must be at least eight characters long.
-	WpaKey string `json:"wpaKey"`
+	// Team-specific WPA key for the 6GHz network used by the FMS. Must be at least eight characters long.
+	WpaKey6 string `json:"wpaKey6"`
 
-	// Team-specific WPA 2.4 key. Must be at least eight characters long.
-	WpaTeamKey string `json:"wpaTeamKey"`
+	// WPA key for the 2.4GHz network broadcast by the radio for team use. Must be at least eight characters long.
+	WpaKey24 string `json:"wpaKey24"`
 }
 
 // Validate checks that all parameters within the configuration request have valid values.
@@ -43,15 +43,15 @@ func (request ConfigurationRequest) Validate(radio *Radio) error {
 		return fmt.Errorf("invalid team number: %d", request.TeamNumber)
 	}
 
-	if len(request.WpaKey) < minWpaKeyLength || len(request.WpaKey) > maxWpaKeyLength {
+	if len(request.WpaKey6) < minWpaKeyLength || len(request.WpaKey6) > maxWpaKeyLength {
 		return fmt.Errorf(
-			"invalid WPA key length: %d (expecting %d-%d)", len(request.WpaKey), minWpaKeyLength, maxWpaKeyLength,
+			"invalid wpaKey6 length: %d (expecting %d-%d)", len(request.WpaKey6), minWpaKeyLength, maxWpaKeyLength,
 		)
 	}
 
-	if len(request.WpaTeamKey) < minWpaKeyLength || len(request.WpaTeamKey) > maxWpaKeyLength {
+	if len(request.WpaKey24) < minWpaKeyLength || len(request.WpaKey24) > maxWpaKeyLength {
 		return fmt.Errorf(
-			"invalid WPA Team key length: %d (expecting %d-%d)", len(request.WpaTeamKey), minWpaKeyLength, maxWpaKeyLength,
+			"invalid wpaKey24 length: %d (expecting %d-%d)", len(request.WpaKey24), minWpaKeyLength, maxWpaKeyLength,
 		)
 	}
 

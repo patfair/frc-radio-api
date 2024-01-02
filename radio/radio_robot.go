@@ -12,23 +12,23 @@ import (
 )
 
 const (
-	// Name of the 2.4GHz radio's Wi-Fi device.
-	radioTeamDevice = "wifi0"
+	// Name of the radio's 6GHz Wi-Fi device.
+	radioDevice6 = "wifi1"
 
-	// Name of the 2.4GHz radio's Wi-Fi interface.
-	radioTeamInterface = "ath0"
+	// Name of the radio's 6GHz Wi-Fi interface.
+	radioInterface6 = "ath1"
 
-	// Index of the 2.4GHz radio's Wi-Fi interface section in the UCI configuration.
-	radioTeamInterfaceIndex = 0
+	// Index of the radio's 6GHz Wi-Fi interface section in the UCI configuration.
+	radioInterfaceIndex6 = 1
 
-	// Name of the 6GHz radio's Wi-Fi device.
-	radioDevice = "wifi1"
+	// Name of the radio's 2.4GHz Wi-Fi device.
+	radioDevice24 = "wifi0"
 
-	// Name of the 6GHz radio's Wi-Fi interface.
-	radioInterface = "ath1"
+	// Name of the radio's 2.4GHz Wi-Fi interface.
+	radioInterface24 = "ath0"
 
-	// Index of the 6GHz radio's Wi-Fi interface section in the UCI configuration.
-	radioInterfaceIndex = 1
+	// Index of the radio's 2.4GHz Wi-Fi interface section in the UCI configuration.
+	radioInterfaceIndex24 = 0
 )
 
 // Radio holds the current state of the access point's configuration and any robot radios connected to it.
@@ -89,24 +89,24 @@ func NewRadio() *Radio {
 
 // isStarted returns true if the Wi-Fi interface is up and running.
 func (radio *Radio) isStarted() bool {
-	_, err := shell.runCommand("iwinfo", radioInterface, "info")
+	_, err := shell.runCommand("iwinfo", radioInterface6, "info")
 	return err == nil
 }
 
 // setInitialState initializes the in-memory state to match the radio's current configuration.
 func (radio *Radio) setInitialState() {
-	wifiInterface := fmt.Sprintf("@wifi-iface[%d]", radioInterfaceIndex)
+	wifiInterface := fmt.Sprintf("@wifi-iface[%d]", radioInterfaceIndex6)
 	mode, _ := uciTree.GetLast("wireless", wifiInterface, "mode")
 	if mode == "sta" {
 		radio.Mode = modeTeamRobotRadio
 		radio.Channel = ""
 	} else {
 		radio.Mode = modeTeamAccessPoint
-		radio.Channel, _ = uciTree.GetLast("wireless", radioDevice, "channel")
+		radio.Channel, _ = uciTree.GetLast("wireless", radioDevice6, "channel")
 	}
 	radio.Ssid, _ = uciTree.GetLast("wireless", wifiInterface, "ssid")
 	radio.TeamNumber, _ = strconv.Atoi(radio.Ssid)
-	radio.HashedWpaKey, radio.WpaKeySalt = radio.getHashedWpaKeyAndSalt(radioInterfaceIndex)
+	radio.HashedWpaKey, radio.WpaKeySalt = radio.getHashedWpaKeyAndSalt(radioInterfaceIndex6)
 }
 
 // configure configures the radio with the given configuration.
@@ -118,32 +118,38 @@ func (radio *Radio) configure(request ConfigurationRequest) error {
 
 		// Handle Wi-Fi.
 		ssid := strconv.Itoa(request.TeamNumber)
-		wifiInterface := fmt.Sprintf("@wifi-iface[%d]", radioInterfaceIndex)
-		wifiTeamInterface := fmt.Sprintf("@wifi-iface[%d]", radioTeamInterfaceIndex)
-		uciTree.SetType("wireless", wifiInterface, "ssid", uci.TypeOption, ssid)
-		uciTree.SetType("wireless", wifiTeamInterface, "ssid", uci.TypeOption, fmt.Sprintf("FRC-%d", request.TeamNumber))
-		uciTree.SetType("wireless", wifiInterface, "key", uci.TypeOption, request.WpaKey)
-		uciTree.SetType("wireless", wifiTeamInterface, "key", uci.TypeOption, request.WpaTeamKey)
+		wifiInterface6 := fmt.Sprintf("@wifi-iface[%d]", radioInterfaceIndex6)
+		wifiInterface24 := fmt.Sprintf("@wifi-iface[%d]", radioInterfaceIndex24)
+		uciTree.SetType("wireless", wifiInterface6, "ssid", uci.TypeOption, ssid)
+		uciTree.SetType("wireless", wifiInterface6, "key", uci.TypeOption, request.WpaKey6)
 
 		teamPartialIp := fmt.Sprintf("%d.%d", request.TeamNumber/100, request.TeamNumber%100)
 		if request.Mode == modeTeamRobotRadio {
+			uciTree.SetType("wireless", wifiInterface6, "mode", uci.TypeOption, "sta")
+			uciTree.SetType(
+				"wireless", wifiInterface24, "ssid", uci.TypeOption, fmt.Sprintf("FRC-%d", request.TeamNumber),
+			)
+			uciTree.SetType("wireless", wifiInterface24, "key", uci.TypeOption, request.WpaKey24)
+			uciTree.SetType("wireless", wifiInterface24, "mode", uci.TypeOption, "ap")
+
 			radio.Channel = ""
-			uciTree.SetType("wireless", wifiInterface, "mode", uci.TypeOption, "sta")
-			uciTree.SetType("wireless", wifiTeamInterface, "mode", uci.TypeOption, "ap")
-			uciTree.SetType("wireless", radioTeamDevice, "channel", uci.TypeOption, "auto")
-			uciTree.Del("wireless", radioDevice, "channel")
+			uciTree.Del("wireless", radioDevice6, "channel")
+			uciTree.SetType("wireless", radioDevice24, "channel", uci.TypeOption, "auto")
+			uciTree.SetType("wireless", radioDevice24, "disabled", uci.TypeOption, "0")
 
 			// Handle IP address when in STA mode.
 			uciTree.SetType("network", "lan", "ipaddr", uci.TypeOption, fmt.Sprintf("10.%s.1", teamPartialIp))
 			uciTree.SetType("network", "lan", "gateway", uci.TypeOption, fmt.Sprintf("10.%s.4", teamPartialIp))
 		} else {
-			uciTree.SetType("wireless", wifiInterface, "mode", uci.TypeOption, "ap")
+			uciTree.SetType("wireless", wifiInterface6, "mode", uci.TypeOption, "ap")
+
+			uciTree.SetType("wireless", radioDevice24, "disabled", uci.TypeOption, "1")
 			if request.Channel == 0 {
 				radio.Channel = "auto"
-				uciTree.SetType("wireless", radioDevice, "channel", uci.TypeOption, "auto")
+				uciTree.SetType("wireless", radioDevice6, "channel", uci.TypeOption, "auto")
 			} else {
 				radio.Channel = strconv.Itoa(request.Channel)
-				uciTree.SetType("wireless", radioDevice, "channel", uci.TypeOption, strconv.Itoa(request.Channel))
+				uciTree.SetType("wireless", radioDevice6, "channel", uci.TypeOption, strconv.Itoa(request.Channel))
 			}
 
 			// Handle IP address when in AP mode.
@@ -161,18 +167,18 @@ func (radio *Radio) configure(request ConfigurationRequest) error {
 		if err := uciTree.Commit(); err != nil {
 			return fmt.Errorf("failed to commit configuration: %v", err)
 		}
-		if _, err := shell.runCommand("wifi", "reload", radioDevice); err != nil {
-			return fmt.Errorf("failed to reload Wi-Fi configuration for device %s: %v", radioDevice, err)
+		if _, err := shell.runCommand("wifi", "reload"); err != nil {
+			return fmt.Errorf("failed to reload Wi-Fi configuration: %v", err)
 		}
 		time.Sleep(wifiReloadBackoffDuration)
 
 		var err error
-		radio.Ssid, err = getSsid(radioInterface)
+		radio.Ssid, err = getSsid(radioInterface6)
 		if err != nil {
 			return err
 		}
 		radio.TeamNumber, _ = strconv.Atoi(radio.Ssid)
-		radio.HashedWpaKey, radio.WpaKeySalt = radio.getHashedWpaKeyAndSalt(radioInterfaceIndex)
+		radio.HashedWpaKey, radio.WpaKeySalt = radio.getHashedWpaKeyAndSalt(radioInterfaceIndex6)
 		if radio.TeamNumber == request.TeamNumber {
 			log.Printf("Successfully configured robot radio after %d attempts.", retryCount)
 			break

@@ -95,12 +95,14 @@ func (radio *Radio) Run() {
 func TriggerFirmwareUpdate(firmwarePath string) {
 	log.Printf("Attempting to trigger firmware update using %s", firmwarePath)
 
-	//Blink the SYS led to indicate we're loading firmware
+	// Blink the SYS LED to indicate that we're loading firmware.
 	model, _ := uciTree.GetLast("system", "@system[0]", "model")
 	if strings.Contains(model, "VH") {
-		shell.runCommand("sh", "-c", "kill $(ps | grep fms_check.sh | grep -v grep | awk '{print $1}')")
-		shell.runCommand("sh", "-c", "echo timer > /sys/class/leds/sys/trigger")
-		shell.runCommand("sh", "-c", "echo 50 > /sys/class/leds/sys/delay_on && echo 50 > /sys/class/leds/sys/delay_off")
+		_, _ = shell.runCommand("sh", "-c", "kill $(ps | grep fms_check.sh | grep -v grep | awk '{print $1}')")
+		_, _ = shell.runCommand("sh", "-c", "echo timer > /sys/class/leds/sys/trigger")
+		_, _ = shell.runCommand(
+			"sh", "-c", "echo 50 > /sys/class/leds/sys/delay_on && echo 50 > /sys/class/leds/sys/delay_off",
+		)
 	}
 
 	if err := shell.startCommand("sysupgrade", "-n", firmwarePath); err != nil {
