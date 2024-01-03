@@ -5,11 +5,11 @@ package web
 
 import (
 	"fmt"
+	"github.com/gorilla/mux"
 	"log"
 	"net"
 	"regexp"
 	"time"
-	"github.com/gorilla/mux"
 )
 
 // getListenAddress returns the address and port that the web server should listen on.
