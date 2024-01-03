@@ -62,7 +62,7 @@
 	<br />
 
 	<div class="container">
-		<form id="form" class="d-grid gap-3">
+		<form id="configForm" class="d-grid gap-3">
 			<div>
 				<div class="form-check-inline">
 					<input id="modeRobotRadio" class="form-check-input" type="radio" name="mode" value="TEAM_ROBOT_RADIO" checked
@@ -164,27 +164,71 @@
 				<div id="channelHelp" class="form-text">Wi-Fi 6E 20 MHz channel</div>
 			</div>
 
-			<button id="submit" type="sumbit" class="btn btn-primary">Configure</button>
+			<button id="configSubmit" type="sumbit" class="btn btn-primary">Configure</button>
 		</form>
 	</div>
 
 	<br />
+
 	<div class="container d-flex flex-column">
-		<div class="mx-auto" id="spinner" hidden>
+		<div class="mx-auto" id="configSpinner" hidden>
 			<div class="spinner-border" role="status">
 				<span class="visually-hidden">Loading...</span>
 			</div>
 		</div>
-		<div id="result" class="alert alert-secondary" role="alert" hidden>
+		<div id="configResult" class="alert alert-secondary" role="alert" hidden></div>
+	</div>
 
+	<br />
+	<hr />
+	<br />
+
+	<div class="container">
+		<h1>Firmware Upload</h1>
+		<form id="firmwareForm" class="d-grid gap-3">
+			<div>
+				<label for="file" class="form-label">File</label>
+				<input type="file" class="form-control" name="file" id="file" aria-describedby="fileHelp">
+				<div id="fileHelp" class="form-text">Firmware file to upload</div>
+			</div>
+			<div>
+				<label for="checksum" class="form-label">Checksum</label>
+				<input type="text" class="form-control" name="checksum" id="checksum" aria-describedby="checksumHelp">
+				<div id="checksumHelp" class="form-text">64-character hexadecimal-encoded SHA-256 hash of unencrypted file</div>
+			</div>
+
+			<button id="firmwareSubmit" type="sumbit" class="btn btn-primary">Upload</button>
+		</form>
+	</div>
+
+	<br />
+
+	<div class="container d-flex flex-column">
+		<div class="mx-auto" id="firmwareSpinner" hidden>
+			<div class="spinner-border" role="status">
+				<span class="visually-hidden">Loading...</span>
+			</div>
 		</div>
+		<div id="firmwareResult" class="alert alert-secondary" role="alert" hidden></div>
 	</div>
 
 	<script>
-		const form = document.getElementById("form");
-		const spinner = document.getElementById("spinner");
-		const submitBtn = document.getElementById("submit");
-		const result = document.getElementById("result");
+		const form = {
+			config: document.getElementById("configForm"),
+			firmware: document.getElementById("firmwareForm")
+		};
+		const spinner = {
+			config: document.getElementById("configSpinner"),
+			firmware: document.getElementById("firmwareSpinner")
+		};
+		const submitBtn = {
+			config: document.getElementById("configSubmit"),
+			firmware: document.getElementById("firmwareSubmit")
+		};
+		const result = {
+			config: document.getElementById("configResult"),
+			firmware: document.getElementById("firmwareResult")
+		};
 
 		function setHiddenInputs(className, hidden) {
 			const apOnly = document.getElementsByClassName(className);
@@ -203,64 +247,64 @@
 			}
 		}
 
-		function setLoading(loading) {
-			spinner.hidden = !loading;
+		function setLoading(prefix, loading) {
+			spinner[prefix].hidden = !loading;
 			if (loading) {
-				submitBtn.setAttribute("disabled", true);
+				submitBtn[prefix].setAttribute("disabled", true);
 			} else {
-				submitBtn.removeAttribute("disabled")
+				submitBtn[prefix].removeAttribute("disabled")
 			}
 		}
 
-		function setResult(header, body) {
-			result.hidden = header === undefined && body === undefined;
-			result.innerHTML = `<h3>${header}</h3><p>${body}</p>`;
+		function setResult(prefix, header, body) {
+			result[prefix].hidden = header === undefined && body === undefined;
+			result[prefix].innerHTML = `<h3>${header}</h3><p>${body}</p>`;
 		}
 
-		function setResultStatus(color) {
-			result.setAttribute("class", `alert alert-${color}`)
+		function setResultStatus(prefix, color) {
+			result[prefix].setAttribute("class", `alert alert-${color}`)
 		}
 
-		async function doRequest(data) {
-			setLoading(true);
-			setResult();
-			setResultStatus("secondary");
+		async function doRequest(prefix, endpoint, body) {
+			setLoading(prefix, true);
+			setResult(prefix);
+			setResultStatus(prefix, "secondary");
 
 			try {
 				// TODO reset to /configuration
 				const controller = new AbortController();
 				const timeout = setTimeout(() => controller.abort(), 10000);
-				const res = await fetch("/configuration", {
+				const res = await fetch(endpoint, {
 					method: "POST",
-					body: JSON.stringify(data),
+					body: body,
 					signal: controller.signal,
 				});
 				clearTimeout(timeout);
 
-				setLoading(false);
+				setLoading(prefix, false);
 
 				const text = await res.text();
 
 				if (res.status == 202) {
-					setResultStatus("success");
-					setResult("Success", text);
+					setResultStatus(prefix, "success");
+					setResult(prefix, "Success", text);
 				}
 				else if (res.status == 404) {
-					setResultStatus("danger");
+					setResultStatus(prefix, "danger");
 					return;
 				}
 				else if (res.status == 401) {
-					setResultStatus("danger");
-					setResult("Unauthorized", text);
+					setResultStatus(prefix, "danger");
+					setResult(prefix, "Unauthorized", text);
 				}
 				else if (res.status == 400) {
-					setResultStatus("warning");
-					setResult("Bad Request", text);
+					setResultStatus(prefix, "warning");
+					setResult(prefix, "Bad Request", text);
 				}
 			} catch (err) {
-				setLoading(false);
-				setResultStatus("danger");
-				setResult("Unknown Error", err);
+				setLoading(prefix, false);
+				setResultStatus(prefix, "danger");
+				setResult(prefix, "Unknown Error", err);
 				return;
 			}
 		}
@@ -288,7 +332,17 @@
 			}
 		}
 
-		form.addEventListener("submit", (event) => {
+		async function doFirmwareRequest(data) {
+			const res = await fetch("/firmware", {
+				method: "POST",
+				body: data
+			});
+			console.log(res.status)
+			const text = await res.text()
+			console.log(text)
+		}
+
+		form.config.addEventListener("submit", (event) => {
 			event.preventDefault();
 			const formData = new FormData(event.target);
 			const data = Object.fromEntries(formData.entries());
@@ -296,13 +350,20 @@
 			data.channel = +data.channel;
 			if (data.mode === "TEAM_ROBOT_RADIO") { delete data.channel; }
 			else if (data.mode === "TEAM_ACCESS_POINT") { data.wpaKey24 = "placeholder"; }
-			doRequest(data);
+			doRequest("config", "/configuration", JSON.stringify(data));
 		});
 
-		setLoading(true);
+		form.firmware.addEventListener("submit", (event) => {
+			event.preventDefault();
+			const formData = new FormData(event.target);
+			doRequest("firmware", "/firmware", formData);
+		})
+
+		setLoading("config", true);
+		updateVisibleFields(new FormData(form.config).get("mode"))
 		getCurrentConfig()
-			.then(() => updateVisibleFields(new FormData(form).get("mode")))
-			.then(() => setLoading(false));
+			.then(() => updateVisibleFields(new FormData(form.config).get("mode")))
+			.then(() => setLoading("config", false));
 	</script>
 </body>
 
