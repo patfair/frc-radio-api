@@ -266,21 +266,20 @@
 			result[prefix].setAttribute("class", `alert alert-${color}`)
 		}
 
-		async function doRequest(prefix, endpoint, body) {
+		async function doRequest(prefix, endpoint, body, timeout) {
 			setLoading(prefix, true);
 			setResult(prefix);
 			setResultStatus(prefix, "secondary");
 
 			try {
-				// TODO reset to /configuration
 				const controller = new AbortController();
-				const timeout = setTimeout(() => controller.abort(), 10000);
+				const timeoutId = setTimeout(() => controller.abort(), timeout * 1000);
 				const res = await fetch(endpoint, {
 					method: "POST",
 					body: body,
 					signal: controller.signal,
 				});
-				clearTimeout(timeout);
+				clearTimeout(timeoutId);
 
 				setLoading(prefix, false);
 
@@ -311,7 +310,6 @@
 		}
 
 		async function getCurrentConfig() {
-			// TODO change to /status
 			try {
 				const res = await fetch("/status");
 				const json = await res.json();
@@ -333,16 +331,6 @@
 			}
 		}
 
-		async function doFirmwareRequest(data) {
-			const res = await fetch("/firmware", {
-				method: "POST",
-				body: data
-			});
-			console.log(res.status)
-			const text = await res.text()
-			console.log(text)
-		}
-
 		form.config.addEventListener("submit", (event) => {
 			event.preventDefault();
 			const formData = new FormData(event.target);
@@ -351,13 +339,13 @@
 			data.channel = +data.channel;
 			if (data.mode === "TEAM_ROBOT_RADIO") { delete data.channel; }
 			else if (data.mode === "TEAM_ACCESS_POINT") { data.wpaKey24 = "placeholder"; }
-			doRequest("config", "/configuration", JSON.stringify(data));
+			doRequest("config", "/configuration", JSON.stringify(data), 10);
 		});
 
 		form.firmware.addEventListener("submit", (event) => {
 			event.preventDefault();
 			const formData = new FormData(event.target);
-			doRequest("firmware", "/firmware", formData);
+			doRequest("firmware", "/firmware", formData, 60);
 		})
 
 		setLoading("config", true);
