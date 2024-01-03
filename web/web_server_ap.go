@@ -9,6 +9,7 @@ import (
 	"net"
 	"regexp"
 	"time"
+	"github.com/gorilla/mux"
 )
 
 // getListenAddress returns the address and port that the web server should listen on.
@@ -50,3 +51,6 @@ func getVlan100IpAddress() (string, error) {
 	}
 	return "", fmt.Errorf("no IP address found on VLAN 100 (i.e. matching %v)", ipRe)
 }
+
+// addRoutes adds additional route handlers to the router if needed.
+func addRoutes(router *mux.Router, web *WebServer) {}

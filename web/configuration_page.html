@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Configure Robot Radio</title>
+	<link rel="icon" href="https://vivid-hosting.net/img/favicon/favicon-32x32.png" type="image/x-icon">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+		integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+</head>
+
+<body>
+	<div class="navbar sticky-top bg-body-tertiary">
+		<div class="container-fluid">
+			<a class="navbar-brand">
+				<svg height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 535.54 62.22">
+					<defs>
+						<style>
+							.a {
+								fill: #30abe2;
+							}
+
+							.b {
+								fill: #231f20;
+							}
+						</style>
+					</defs>
+					<title>vh_logo</title>
+					<polygon class="a"
+						points="21.49 61.2 0 1.07 13.17 1.07 28.38 45.57 43.11 1.07 55.99 1.07 34.45 61.2 21.49 61.2 21.49 61.2" />
+					<polygon class="a" points="57.61 1.07 69.75 1.07 69.75 61.2 57.61 61.2 57.61 1.07 57.61 1.07" />
+					<polygon class="a"
+						points="92.46 61.2 70.97 1.07 84.13 1.07 99.35 45.57 114.07 1.07 126.95 1.07 105.42 61.2 92.46 61.2 92.46 61.2" />
+					<polygon class="a" points="128.58 1.07 140.72 1.07 140.72 61.2 128.58 61.2 128.58 1.07 128.58 1.07" />
+					<path class="a"
+						d="M160.18,11.24V51.06h9.06a33,33,0,0,0,7.34-.57,11.2,11.2,0,0,0,4.9-2.5,12.73,12.73,0,0,0,3.18-5.8,39.19,39.19,0,0,0,1.23-11,35.89,35.89,0,0,0-1.23-10.71,13.76,13.76,0,0,0-3.45-5.82,11.56,11.56,0,0,0-5.62-2.83,55,55,0,0,0-10-.57ZM148,1.07h22.19a43.31,43.31,0,0,1,11.44,1.15,20.11,20.11,0,0,1,9.07,5.54,26.29,26.29,0,0,1,5.74,9.74,44.39,44.39,0,0,1,2,14.21,39.53,39.53,0,0,1-1.85,12.8,26.51,26.51,0,0,1-6.44,10.62,21.34,21.34,0,0,1-8.53,4.8,36.76,36.76,0,0,1-10.75,1.27H148V1.07Z" />
+					<polygon class="b"
+						points="205.16 61.2 205.16 1.07 213.12 1.07 213.12 25.76 244.37 25.76 244.37 1.07 252.33 1.07 252.33 61.2 244.37 61.2 244.37 32.85 213.12 32.85 213.12 61.2 205.16 61.2 205.16 61.2" />
+					<path class="b"
+						d="M264.64,32q0,10.87,5.84,17.12a20.39,20.39,0,0,0,29.45-.06q5.8-6.32,5.8-17.92a30.79,30.79,0,0,0-2.48-12.82A19.06,19.06,0,0,0,296,9.86a19.67,19.67,0,0,0-10.72-3,20.34,20.34,0,0,0-14.54,5.8q-6.09,5.81-6.09,19.38m-8.2-.12q0-15,8-23.44T285.23,0a28.79,28.79,0,0,1,15,4,26,26,0,0,1,10.19,11.09,36,36,0,0,1,3.51,16.14,35.43,35.43,0,0,1-3.69,16.36,25.21,25.21,0,0,1-10.46,10.93,29.89,29.89,0,0,1-14.6,3.71A28.44,28.44,0,0,1,270,58.12a26.38,26.38,0,0,1-10.13-11.2,33.94,33.94,0,0,1-3.45-15" />
+					<path class="b"
+						d="M314.77,41.88l7.51-.66a16.56,16.56,0,0,0,2.48,7.4,13.55,13.55,0,0,0,6.05,4.68A22.92,22.92,0,0,0,340,55.08a22.13,22.13,0,0,0,8-1.35A11.16,11.16,0,0,0,353.26,50a8.61,8.61,0,0,0,1.7-5.15,7.83,7.83,0,0,0-1.64-4.94,12.17,12.17,0,0,0-5.41-3.55,105.8,105.8,0,0,0-10.71-2.93q-8.29-2-11.61-3.75a16.26,16.26,0,0,1-6.42-5.6,13.72,13.72,0,0,1-2.11-7.49,15.28,15.28,0,0,1,2.58-8.51,16,16,0,0,1,7.55-6,28.63,28.63,0,0,1,11-2.05A30.15,30.15,0,0,1,350,2.19a17,17,0,0,1,7.85,6.34,18.21,18.21,0,0,1,3,9.47l-7.63.57q-.62-5.7-4.16-8.61T338.56,7.05q-7.22,0-10.52,2.65a7.93,7.93,0,0,0-3.3,6.38,6.84,6.84,0,0,0,2.34,5.33q2.3,2.09,12,4.29t13.31,3.83a18.24,18.24,0,0,1,7.75,6.13,14.94,14.94,0,0,1,2.5,8.55,16.36,16.36,0,0,1-2.75,9,18.09,18.09,0,0,1-7.89,6.6,27.5,27.5,0,0,1-11.59,2.36,34.61,34.61,0,0,1-13.68-2.38,19.15,19.15,0,0,1-8.65-7.16,20.29,20.29,0,0,1-3.3-10.81" />
+					<polygon class="b"
+						points="382.08 61.2 382.08 8.16 362.27 8.16 362.27 1.07 409.93 1.07 409.93 8.16 390.04 8.16 390.04 61.2 382.08 61.2 382.08 61.2" />
+					<polygon class="b" points="412.73 1.07 420.68 1.07 420.68 61.2 412.73 61.2 412.73 1.07 412.73 1.07" />
+					<polygon class="b"
+						points="427.91 61.2 427.91 1.07 436.07 1.07 467.65 48.27 467.65 1.07 475.28 1.07 475.28 61.2 467.12 61.2 435.54 13.95 435.54 61.2 427.91 61.2 427.91 61.2" />
+					<path class="b"
+						d="M510.07,37.61V30.56l25.47,0V52.83a45,45,0,0,1-12.1,7,35.89,35.89,0,0,1-12.8,2.36,34.14,34.14,0,0,1-16.1-3.79,25.07,25.07,0,0,1-10.93-11,34.54,34.54,0,0,1-3.69-16A37.22,37.22,0,0,1,483.59,15a24.42,24.42,0,0,1,10.56-11.3A33.1,33.1,0,0,1,510,0a31.45,31.45,0,0,1,11.79,2.11A19.55,19.55,0,0,1,530.08,8a26.11,26.11,0,0,1,4.55,9.84l-7.18,2a22.24,22.24,0,0,0-3.36-7.22,13.8,13.8,0,0,0-5.74-4.2,21.07,21.07,0,0,0-8.29-1.58,24.41,24.41,0,0,0-9.43,1.66,17.62,17.62,0,0,0-6.42,4.37,20.83,20.83,0,0,0-3.79,5.95,31.46,31.46,0,0,0-2.3,12.1,29.36,29.36,0,0,0,2.77,13.45,17.71,17.71,0,0,0,8.06,8A25,25,0,0,0,510.19,55a26.68,26.68,0,0,0,10.09-2,26.05,26.05,0,0,0,7.47-4.24V37.61Z" />
+				</svg>
+			</a>
+
+			<div class="flex">
+				<span class="fs-3 fw-bold">
+					VH-109 Radio Configuration
+				</span>
+			</div>
+		</div>
+	</div>
+
+	<br />
+
+	<div class="container">
+		<form id="form" class="d-grid gap-3">
+			<div>
+				<div class="form-check-inline">
+					<input id="modeRobotRadio" class="form-check-input" type="radio" name="mode" value="TEAM_ROBOT_RADIO" checked
+						onclick="updateVisibleFields('TEAM_ROBOT_RADIO')">
+					<label class="form-check-label" for="modeRobotRadio">
+						Robot Radio Mode
+					</label>
+				</div>
+				<div class="form-check-inline">
+					<input id="modeAccessPoint" class="form-check-input" type="radio" name="mode" value="TEAM_ACCESS_POINT"
+						onclick="updateVisibleFields('TEAM_ACCESS_POINT')">
+					<label class="form-check-label" for="modeAccessPoint">
+						Access Point Mode
+					</label>
+				</div>
+			</div>
+
+			<div>
+				<label for="teamNumber" class="form-label">Team Number</label>
+				<input type="text" class="form-control" name="teamNumber" id="teamNumber" aria-describedby="teamNumberHelp">
+				<div id="teamNumberHelp" class="form-text">FRC team number</div>
+			</div>
+
+			<div>
+				<label for="wpaKey6" class="form-label">WPA key for 6GHz connection</label>
+				<input type="text" class="form-control" name="wpaKey6" id="wpaKey6" aria-describedby="wpaKey6Help">
+				<div id="wpaKey6Help" class="form-text">String between 8 and 16 characters long</div>
+			</div>
+
+			<div class="robot-only">
+				<label for="wpaKey24" class="form-label">WPA key for 2.4GHz access point</label>
+				<input type="text" class="form-control" name="wpaKey24" id="wpaKey24" aria-describedby="wpaKey24Help">
+				<div id="wpaKey24Help" class="form-text">String between 8 and 16 characters long</div>
+			</div>
+
+			<div class="ap-only">
+				<label for="channel" class="form-label">Wi-Fi Channel</label>
+				<select class="form-select" name="channel" id="channel" aria-describedby="channelHelp">
+					<option>1</option>
+					<option>5</option>
+					<option>9</option>
+					<option>13</option>
+					<option>17</option>
+					<option>21</option>
+					<option>25</option>
+					<option>29</option>
+					<option>33</option>
+					<option>37</option>
+					<option>41</option>
+					<option>45</option>
+					<option>49</option>
+					<option>53</option>
+					<option>57</option>
+					<option>61</option>
+					<option>65</option>
+					<option>69</option>
+					<option>73</option>
+					<option>77</option>
+					<option>81</option>
+					<option>85</option>
+					<option>89</option>
+					<option>93</option>
+					<option>97</option>
+					<option>101</option>
+					<option>105</option>
+					<option>109</option>
+					<option>113</option>
+					<option>117</option>
+					<option>121</option>
+					<option>125</option>
+					<option>129</option>
+					<option>133</option>
+					<option>137</option>
+					<option>141</option>
+					<option>145</option>
+					<option>149</option>
+					<option>153</option>
+					<option>157</option>
+					<option>161</option>
+					<option>165</option>
+					<option>169</option>
+					<option>173</option>
+					<option>177</option>
+					<option>181</option>
+					<option>185</option>
+					<option>189</option>
+					<option>193</option>
+					<option>197</option>
+					<option>201</option>
+					<option>205</option>
+					<option>209</option>
+					<option>213</option>
+					<option>217</option>
+					<option>221</option>
+					<option>225</option>
+					<option>229</option>
+					<option>233</option>
+				</select>
+				<div id="channelHelp" class="form-text">Wi-Fi 6E 20 MHz channel</div>
+			</div>
+
+			<button id="submit" type="sumbit" class="btn btn-primary">Configure</button>
+		</form>
+	</div>
+
+	<br />
+	<div class="container d-flex flex-column">
+		<div class="mx-auto" id="spinner" hidden>
+			<div class="spinner-border" role="status">
+				<span class="visually-hidden">Loading...</span>
+			</div>
+		</div>
+		<div id="result" class="alert alert-secondary" role="alert" hidden>
+
+		</div>
+	</div>
+
+	<script>
+		const form = document.getElementById("form");
+		const spinner = document.getElementById("spinner");
+		const submitBtn = document.getElementById("submit");
+		const result = document.getElementById("result");
+
+		function setHiddenInputs(className, hidden) {
+			const apOnly = document.getElementsByClassName(className);
+			for (let i = 0; i < apOnly.length; i++) {
+				apOnly[i].hidden = hidden
+			}
+		}
+
+		function updateVisibleFields(mode) {
+			if (mode == "TEAM_ROBOT_RADIO") {
+				setHiddenInputs("robot-only", false);
+				setHiddenInputs("ap-only", true);
+			} else if (mode == "TEAM_ACCESS_POINT") {
+				setHiddenInputs("robot-only", true);
+				setHiddenInputs("ap-only", false);
+			}
+		}
+
+		function setLoading(loading) {
+			spinner.hidden = !loading;
+			if (loading) {
+				submitBtn.setAttribute("disabled", true);
+			} else {
+				submitBtn.removeAttribute("disabled")
+			}
+		}
+
+		function setResult(header, body) {
+			result.hidden = header === undefined && body === undefined;
+			result.innerHTML = `<h3>${header}</h3><p>${body}</p>`;
+		}
+
+		function setResultStatus(color) {
+			result.setAttribute("class", `alert alert-${color}`)
+		}
+
+		async function doRequest(data) {
+			setLoading(true);
+			setResult();
+			setResultStatus("secondary");
+
+			try {
+				// TODO reset to /configuration
+				const controller = new AbortController();
+				const timeout = setTimeout(() => controller.abort(), 10000);
+				const res = await fetch("/configuration", {
+					method: "POST",
+					body: JSON.stringify(data),
+					signal: controller.signal,
+				});
+				clearTimeout(timeout);
+
+				setLoading(false);
+
+				const text = await res.text();
+
+				if (res.status == 202) {
+					setResultStatus("success");
+					setResult("Success", text);
+				}
+				else if (res.status == 404) {
+					setResultStatus("danger");
+					return;
+				}
+				else if (res.status == 401) {
+					setResultStatus("danger");
+					setResult("Unauthorized", text);
+				}
+				else if (res.status == 400) {
+					setResultStatus("warning");
+					setResult("Bad Request", text);
+				}
+			} catch (err) {
+				setLoading(false);
+				setResultStatus("danger");
+				setResult("Unknown Error", err);
+				return;
+			}
+		}
+
+		async function getCurrentConfig() {
+			// TODO change to /status
+			try {
+				const res = await fetch("/status");
+				const json = await res.json();
+
+				const robotMode = document.getElementById("modeRobotRadio");
+				const apMode = document.getElementById("modeAccessPoint");
+				if (json.mode === "TEAM_ROBOT_RADIO") {
+					robotMode.setAttribute("checked", "checked");
+					apMode.removeAttribute("checked");
+				} else if (json.mode === "TEAM_ACCESS_POINT") {
+					robotMode.removeAttribute("checked");
+					apMode.setAttribute("checked", "checked");
+				}
+
+				document.getElementById("teamNumber").value = json.teamNumber;
+				document.getElementById("channel").value = json.channel;
+			} catch (e) {
+				console.error(e);
+			}
+		}
+
+		form.addEventListener("submit", (event) => {
+			event.preventDefault();
+			const formData = new FormData(event.target);
+			const data = Object.fromEntries(formData.entries());
+			data.teamNumber = +data.teamNumber;
+			data.channel = +data.channel;
+			if (data.mode === "TEAM_ROBOT_RADIO") { delete data.channel; }
+			else if (data.mode === "TEAM_ACCESS_POINT") { data.wpaKey24 = "placeholder"; }
+			doRequest(data);
+		});
+
+		setLoading(true);
+		getCurrentConfig()
+			.then(() => updateVisibleFields(new FormData(form).get("mode")))
+			.then(() => setLoading(false));
+	</script>
+</body>
+
+</html>
