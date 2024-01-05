@@ -1,3 +1,4 @@
+// This file is specific to the robot radio version of the API.
 //go:build robot
 
 package web
