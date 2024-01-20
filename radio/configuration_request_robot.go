@@ -19,10 +19,11 @@ type ConfigurationRequest struct {
 	// Team number to configure the radio for. Must be between 1 and 25499.
 	TeamNumber int `json:"teamNumber"`
 
-	// Team-specific WPA key for the 6GHz network used by the FMS. Must be at least eight characters long.
+	// Team-specific WPA key for the 6GHz network used by the FMS. Must be at least eight alphanumeric characters long.
 	WpaKey6 string `json:"wpaKey6"`
 
-	// WPA key for the 2.4GHz network broadcast by the radio for team use. Must be at least eight characters long.
+	// WPA key for the 2.4GHz network broadcast by the radio for team use. Must be at least eight alphanumeric
+	// characters long.
 	WpaKey24 string `json:"wpaKey24"`
 }
 
@@ -48,11 +49,17 @@ func (request ConfigurationRequest) Validate(radio *Radio) error {
 			"invalid wpaKey6 length: %d (expecting %d-%d)", len(request.WpaKey6), minWpaKeyLength, maxWpaKeyLength,
 		)
 	}
+	if !regexp.MustCompile(alphanumericRegex).MatchString(request.WpaKey6) {
+		return errors.New("invalid wpaKey6 (expecting alphanumeric)")
+	}
 
 	if len(request.WpaKey24) < minWpaKeyLength || len(request.WpaKey24) > maxWpaKeyLength {
 		return fmt.Errorf(
 			"invalid wpaKey24 length: %d (expecting %d-%d)", len(request.WpaKey24), minWpaKeyLength, maxWpaKeyLength,
 		)
+	}
+	if !regexp.MustCompile(alphanumericRegex).MatchString(request.WpaKey24) {
+		return errors.New("invalid wpaKey24 (expecting alphanumeric)")
 	}
 
 	return nil

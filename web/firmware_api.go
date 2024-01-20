@@ -21,7 +21,7 @@ const (
 	maxRequestSizeBytes = 64 * 1024 * 1024 // 64 MB
 
 	// Maximum size of the firmware file that can be held in memory at once (based on device memory limitations).
-	maxMemorySizeBytes = 20 * 1024 * 1024 // 20 MB
+	maxMemorySizeBytes = 2 * 1024 * 1024 // 2 MB
 
 	// Path to the optional file containing the private key for decrypting new firmware.
 	firmwareDecryptionKeyFilePath = "/root/frc-radio-api-firmware-key.txt"
@@ -95,7 +95,7 @@ func (web *WebServer) firmwareHandler(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	w.WriteHeader(http.StatusAccepted)
-	_, _ = fmt.Fprintln(w, "New firmware received and will be applied now.")
+	_, _ = fmt.Fprintln(w, "New firmware received and will be applied now. The radio will reboot several times. The firmware upgrade process is complete when the SYS light is slowly blinking.")
 }
 
 // decryptAndSaveFirmwareFile decrypts the given uploaded file and saves it to the hardcoded path for new firmware.

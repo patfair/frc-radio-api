@@ -34,6 +34,9 @@ const (
 	// Maximum length for WPA keys.
 	maxWpaKeyLength = 16
 
+	// Regex to validate a string as alphanumeric.
+	alphanumericRegex = "^[a-zA-Z0-9]*$"
+
 	// Valid characters in the randomly generated salt used to obscure the WPA key.
 	saltCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
