@@ -6,14 +6,29 @@ package web
 import (
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/patfair/frc-radio-api/radio"
 	"log"
 	"net"
+	"net/http"
 	"regexp"
 	"time"
 )
 
+const (
+	// TCP port that the web server listens on.
+	portLinksys      = 8081
+	portVividHosting = 80
+)
+
 // getListenAddress returns the address and port that the web server should listen on.
-func getListenAddress() string {
+func getListenAddress(r *radio.Radio) string {
+	var port int
+	if r.Type == radio.TypeLinksys {
+		port = portLinksys
+	} else {
+		port = portVividHosting
+	}
+
 	var ipAddress string
 	for {
 		var err error
@@ -54,3 +69,8 @@ func getVlan100IpAddress() (string, error) {
 
 // addRoutes adds additional route handlers to the router if needed.
 func addRoutes(router *mux.Router, web *WebServer) {}
+
+// rootHandler redirects the root URL to the status page.
+func (web *WebServer) rootHandler(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/status", http.StatusFound)
+}

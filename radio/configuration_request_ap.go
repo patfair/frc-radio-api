@@ -42,14 +42,14 @@ func (request ConfigurationRequest) Validate(radio *Radio) error {
 		// Validate channel number.
 		valid := false
 		switch radio.Type {
-		case typeLinksys:
+		case TypeLinksys:
 			for _, channel := range validLinksysChannels {
 				if request.Channel == channel {
 					valid = true
 					break
 				}
 			}
-		case typeVividHosting:
+		case TypeVividHosting:
 			valid = isValid6GhzChannel(request.Channel)
 		}
 		if !valid {

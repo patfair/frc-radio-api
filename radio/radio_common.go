@@ -44,15 +44,15 @@ const (
 	saltLength = 16
 )
 
-// radioType represents the hardware type of the radio.
+// RadioType represents the hardware type of the radio.
 //
-//go:generate stringer -type=radioType
-type radioType int
+//go:generate stringer -type=RadioType
+type RadioType int
 
 const (
-	typeUnknown radioType = iota
-	typeLinksys
-	typeVividHosting
+	TypeUnknown RadioType = iota
+	TypeLinksys
+	TypeVividHosting
 )
 
 // radioStatus represents the configuration stage of the radio.

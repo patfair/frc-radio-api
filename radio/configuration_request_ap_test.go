@@ -9,8 +9,8 @@ import (
 )
 
 func TestConfigurationRequest_Validate(t *testing.T) {
-	linksysRadio := &Radio{Type: typeLinksys}
-	vividHostingRadio := &Radio{Type: typeVividHosting}
+	linksysRadio := &Radio{Type: TypeLinksys}
+	vividHostingRadio := &Radio{Type: TypeVividHosting}
 
 	// Empty request.
 	request := ConfigurationRequest{}
@@ -20,12 +20,12 @@ func TestConfigurationRequest_Validate(t *testing.T) {
 	// Invalid 5GHz channel.
 	request.Channel = 5
 	err = request.Validate(linksysRadio)
-	assert.EqualError(t, err, "invalid channel for typeLinksys: 5")
+	assert.EqualError(t, err, "invalid channel for TypeLinksys: 5")
 
 	// Invalid 6GHz channel.
 	request.Channel = 36
 	err = request.Validate(vividHostingRadio)
-	assert.EqualError(t, err, "invalid channel for typeVividHosting: 36")
+	assert.EqualError(t, err, "invalid channel for TypeVividHosting: 36")
 
 	// Invalid station.
 	request = ConfigurationRequest{

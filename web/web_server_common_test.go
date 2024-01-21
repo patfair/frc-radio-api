@@ -5,13 +5,6 @@ import (
 	"testing"
 )
 
-func TestWeb_rootHandler(t *testing.T) {
-	var web WebServer
-	recorder := web.getHttpResponse("/")
-	assert.Equal(t, 302, recorder.Code)
-	assert.Equal(t, recorder.Header().Get("Location"), "/status")
-}
-
 func TestWeb_healthHandler(t *testing.T) {
 	var web WebServer
 	recorder := web.getHttpResponse("/health")
