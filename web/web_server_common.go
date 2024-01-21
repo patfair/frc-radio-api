@@ -13,7 +13,7 @@ import (
 
 const (
 	// TCP port that the web server listens on.
-	port = 8081
+	port = 80
 
 	// Path to the optional file containing the password for the API.
 	passwordFilePath = "/root/frc-radio-api-password.txt"
@@ -85,7 +85,7 @@ func (web *WebServer) newRouter() http.Handler {
 
 // rootHandler redirects the root URL to the status page.
 func (web *WebServer) rootHandler(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/status", http.StatusFound)
+	http.Redirect(w, r, "/configuration", http.StatusFound)
 }
 
 // healthHandler returns a simple "OK" response to indicate that the server is running.
