@@ -140,6 +140,8 @@ func (radio *Radio) configure(request ConfigurationRequest) error {
 			// Handle IP address when in STA mode.
 			uciTree.SetType("network", "lan", "ipaddr", uci.TypeOption, fmt.Sprintf("10.%s.1", teamPartialIp))
 			uciTree.SetType("network", "lan", "gateway", uci.TypeOption, fmt.Sprintf("10.%s.4", teamPartialIp))
+			uciTree.SetType("dhcp", "lan", "start", uci.TypeOption, "200")
+			uciTree.SetType("dhcp", "lan", "limit", uci.TypeOption, "20")
 		} else {
 			uciTree.SetType("wireless", wifiInterface6, "mode", uci.TypeOption, "ap")
 
@@ -155,6 +157,8 @@ func (radio *Radio) configure(request ConfigurationRequest) error {
 			// Handle IP address when in AP mode.
 			uciTree.SetType("network", "lan", "ipaddr", uci.TypeOption, fmt.Sprintf("10.%s.4", teamPartialIp))
 			uciTree.SetType("network", "lan", "gateway", uci.TypeOption, fmt.Sprintf("10.%s.4", teamPartialIp))
+			uciTree.SetType("dhcp", "lan", "start", uci.TypeOption, "20")
+			uciTree.SetType("dhcp", "lan", "limit", uci.TypeOption, "180")
 		}
 
 		// Handle DHCP.
@@ -172,7 +176,6 @@ func (radio *Radio) configure(request ConfigurationRequest) error {
 		}
 		time.Sleep(wifiReloadBackoffDuration)
 
-		var err error
 		radio.Ssid, err = getSsid(radioInterface6)
 		if err != nil {
 			return err
