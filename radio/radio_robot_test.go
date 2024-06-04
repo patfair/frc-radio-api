@@ -97,7 +97,7 @@ func TestRadio_handleConfigurationRequest(t *testing.T) {
 	radio.ConfigurationRequestChannel <- dummyRequest2
 	radio.ConfigurationRequestChannel <- request
 	assert.Nil(t, radio.handleConfigurationRequest(dummyRequest1))
-	assert.Equal(t, 16, fakeTree.setCount)
+	assert.Equal(t, 18, fakeTree.setCount)
 	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[1].ssid"], "12345")
 	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[1].key"], "11111111")
 	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[1].mode"], "sta")
@@ -109,7 +109,8 @@ func TestRadio_handleConfigurationRequest(t *testing.T) {
 	assert.Equal(t, fakeTree.valuesFromSet["wireless.wifi0.disabled"], "0")
 	assert.Equal(t, fakeTree.valuesFromSet["network.lan.ipaddr"], "10.123.45.1")
 	assert.Equal(t, fakeTree.valuesFromSet["network.lan.gateway"], "10.123.45.4")
-	assert.Equal(t, fakeTree.valuesFromSet["dhcp.@host[-1]"], "***DELETED***")
+	assert.Equal(t, fakeTree.valuesFromSet["dhcp.lan.start"], "200")
+	assert.Equal(t, fakeTree.valuesFromSet["dhcp.lan.limit"], "20")
 	assert.Equal(t, fakeTree.valuesFromSet["dhcp.@host[0]"], "***ADDED***")
 	assert.Equal(t, fakeTree.valuesFromSet["dhcp.lan.dhcp_option"], "3,10.123.45.4")
 	assert.Equal(t, fakeTree.valuesFromSet["dhcp.@host[0].name"], "roboRIO-12345-FRC")
@@ -133,7 +134,7 @@ func TestRadio_handleConfigurationRequest(t *testing.T) {
 	fakeTree.valuesForGet["wireless.@wifi-iface[1].key"] = "11111111"
 	request = ConfigurationRequest{Mode: modeTeamAccessPoint, TeamNumber: 12345, WpaKey6: "11111111", Channel: 229}
 	assert.Nil(t, radio.handleConfigurationRequest(request))
-	assert.Equal(t, 12, fakeTree.setCount)
+	assert.Equal(t, 14, fakeTree.setCount)
 	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[1].ssid"], "12345")
 	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[1].key"], "11111111")
 	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[1].mode"], "ap")
@@ -141,6 +142,8 @@ func TestRadio_handleConfigurationRequest(t *testing.T) {
 	assert.Equal(t, fakeTree.valuesFromSet["wireless.wifi0.disabled"], "1")
 	assert.Equal(t, fakeTree.valuesFromSet["network.lan.ipaddr"], "10.123.45.4")
 	assert.Equal(t, fakeTree.valuesFromSet["network.lan.gateway"], "10.123.45.4")
+	assert.Equal(t, fakeTree.valuesFromSet["dhcp.lan.start"], "20")
+	assert.Equal(t, fakeTree.valuesFromSet["dhcp.lan.limit"], "180")
 	assert.Equal(t, fakeTree.valuesFromSet["dhcp.@host[-1]"], "***DELETED***")
 	assert.Equal(t, fakeTree.valuesFromSet["dhcp.@host[0]"], "***ADDED***")
 	assert.Equal(t, fakeTree.valuesFromSet["dhcp.lan.dhcp_option"], "3,10.123.45.4")
