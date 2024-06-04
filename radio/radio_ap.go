@@ -23,7 +23,7 @@ type Radio struct {
 	Channel int `json:"channel"`
 
 	// Channel bandwidth mode for the radio to use. Valid values are "HT20" and "HT40".
-	ChannelBandwidth string `json:"channelWidth"`
+	ChannelBandwidth string `json:"channelBandwidth"`
 
 	// Enum representing the current configuration stage of the radio.
 	Status radioStatus `json:"status"`
