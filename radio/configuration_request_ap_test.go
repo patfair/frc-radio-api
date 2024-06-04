@@ -28,12 +28,12 @@ func TestConfigurationRequest_Validate(t *testing.T) {
 	assert.EqualError(t, err, "invalid channel for TypeVividHosting: 36")
 
 	// Invalid channel bandwidth.
-	request = ConfigurationRequest{ChannelBandwidth: "HT30"}
+	request = ConfigurationRequest{ChannelBandwidth: "30MHz"}
 	err = request.Validate(vividHostingRadio)
-	assert.EqualError(t, err, "invalid channel bandwidth: HT30")
+	assert.EqualError(t, err, "invalid channel bandwidth: 30MHz")
 
 	// Channel bandwidth not supported on Linksys.
-	request = ConfigurationRequest{ChannelBandwidth: "HT20"}
+	request = ConfigurationRequest{ChannelBandwidth: "20MHz"}
 	err = request.Validate(linksysRadio)
 	assert.EqualError(t, err, "channel bandwidth cannot be changed on TypeLinksys")
 

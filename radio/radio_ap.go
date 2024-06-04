@@ -22,7 +22,7 @@ type Radio struct {
 	// 5GHz or 6GHz channel number the radio is broadcasting on.
 	Channel int `json:"channel"`
 
-	// Channel bandwidth mode for the radio to use. Valid values are "HT20" and "HT40".
+	// Channel bandwidth mode for the radio to use. Valid values are "20MHz" and "40MHz".
 	ChannelBandwidth string `json:"channelBandwidth"`
 
 	// Enum representing the current configuration stage of the radio.
@@ -112,7 +112,15 @@ func (radio *Radio) isStarted() bool {
 func (radio *Radio) setInitialState() {
 	channel, _ := uciTree.GetLast("wireless", radio.device, "channel")
 	radio.Channel, _ = strconv.Atoi(channel)
-	radio.ChannelBandwidth, _ = uciTree.GetLast("wireless", radio.device, "htmode")
+	htmode, _ := uciTree.GetLast("wireless", radio.device, "htmode")
+	switch htmode {
+	case "HT20":
+		radio.ChannelBandwidth = "20MHz"
+	case "HT40":
+		radio.ChannelBandwidth = "40MHz"
+	default:
+		radio.ChannelBandwidth = "INVALID"
+	}
 	_ = radio.updateStationStatuses()
 }
 
@@ -123,7 +131,16 @@ func (radio *Radio) configure(request ConfigurationRequest) error {
 		radio.Channel = request.Channel
 	}
 	if request.ChannelBandwidth != "" {
-		uciTree.SetType("wireless", radio.device, "htmode", uci.TypeOption, request.ChannelBandwidth)
+		var htmode string
+		switch request.ChannelBandwidth {
+		case "20MHz":
+			htmode = "HT20"
+		case "40MHz":
+			htmode = "HT40"
+		default:
+			return fmt.Errorf("invalid channel bandwidth: %s", request.ChannelBandwidth)
+		}
+		uciTree.SetType("wireless", radio.device, "htmode", uci.TypeOption, htmode)
 		radio.ChannelBandwidth = request.ChannelBandwidth
 	}
 
