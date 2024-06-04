@@ -51,6 +51,7 @@ The `/status` GET endpoint returns the current status of the access point. It re
 $ curl http://10.0.100.2:8081/status
 {
   "channel": 93,
+  "channelBandwidth": "HT40",
   "status": "ACTIVE",
   "stationStatuses": {
     "blue1": null,
@@ -92,6 +93,7 @@ The `/configuration` POST endpoint allows the access point to be configured. It 
 ```
 $ curl http://10.0.100.2:8081/configuration -XPOST -d '{
   "channel": 93,
+  "channelBandwidth": "HT20",
   "stationConfigurations": {
     "red1": {"ssid": "1111", "wpaKey": "11111111"},
     "blue2": {"ssid": "5555", "wpaKey": "55555555"}
@@ -105,6 +107,7 @@ The `/status` endpoint can then be polled to check whether the configuration has
 $ curl http://10.0.100.2:8081/status
 {
   "channel": 93,
+  "channelBandwidth": "HT20",
   "status": "CONFIGURING",
   "stationStatuses": {
     "blue1": null,

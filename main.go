@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/patfair/frc-radio-api/radio"
 	"github.com/patfair/frc-radio-api/web"
 	"log"
@@ -22,9 +23,11 @@ func main() {
 	setupLogging()
 
 	radio := radio.NewRadio()
+	fmt.Println("created radio")
 
 	// Launch the web server in a separate thread.
 	webServer := web.NewWebServer(radio)
+	fmt.Println("created webserver")
 	go webServer.Run()
 
 	// Run the radio event loop in the main thread.
@@ -50,5 +53,4 @@ func setupLogging() {
 		log.Printf("error opening log file; logging to stdout instead: %v", err)
 	}
 	log.Println("Starting FRC Radio API...")
-
 }
