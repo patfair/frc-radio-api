@@ -27,6 +27,16 @@ func TestConfigurationRequest_Validate(t *testing.T) {
 	err = request.Validate(vividHostingRadio)
 	assert.EqualError(t, err, "invalid channel for TypeVividHosting: 36")
 
+	// Invalid channel bandwidth.
+	request = ConfigurationRequest{ChannelBandwidth: "HT30"}
+	err = request.Validate(vividHostingRadio)
+	assert.EqualError(t, err, "invalid channel bandwidth: HT30")
+
+	// Channel bandwidth not supported on Linksys.
+	request = ConfigurationRequest{ChannelBandwidth: "HT20"}
+	err = request.Validate(linksysRadio)
+	assert.EqualError(t, err, "channel bandwidth cannot be changed on TypeLinksys")
+
 	// Invalid station.
 	request = ConfigurationRequest{
 		StationConfigurations: map[string]StationConfiguration{"red4": {Ssid: "254", WpaKey: "12345678"}},

@@ -22,6 +22,9 @@ type Radio struct {
 	// 5GHz or 6GHz channel number the radio is broadcasting on.
 	Channel int `json:"channel"`
 
+	// Channel bandwidth mode for the radio to use. Valid values are "HT20" and "HT40".
+	ChannelBandwidth string `json:"channelWidth"`
+
 	// Enum representing the current configuration stage of the radio.
 	Status radioStatus `json:"status"`
 
@@ -109,6 +112,7 @@ func (radio *Radio) isStarted() bool {
 func (radio *Radio) setInitialState() {
 	channel, _ := uciTree.GetLast("wireless", radio.device, "channel")
 	radio.Channel, _ = strconv.Atoi(channel)
+	radio.ChannelBandwidth, _ = uciTree.GetLast("wireless", radio.device, "htmode")
 	_ = radio.updateStationStatuses()
 }
 
@@ -117,6 +121,10 @@ func (radio *Radio) configure(request ConfigurationRequest) error {
 	if request.Channel > 0 {
 		uciTree.SetType("wireless", radio.device, "channel", uci.TypeOption, strconv.Itoa(request.Channel))
 		radio.Channel = request.Channel
+	}
+	if request.ChannelBandwidth != "" {
+		uciTree.SetType("wireless", radio.device, "htmode", uci.TypeOption, request.ChannelBandwidth)
+		radio.ChannelBandwidth = request.ChannelBandwidth
 	}
 
 	if radio.Type == TypeLinksys {

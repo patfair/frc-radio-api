@@ -13,6 +13,10 @@ type ConfigurationRequest struct {
 	// 5GHz or 6GHz channel number for the radio to use. Set to 0 to leave unchanged.
 	Channel int `json:"channel"`
 
+	// Channel bandwidth mode for the radio to use. Valid values are "HT20" and "HT40". Set to an empty string to leave
+	// unchanged.
+	ChannelBandwidth string `json:"channelBandwidth"`
+
 	// SSID and WPA key for each team station, keyed by alliance and number (e.g. "red1", "blue3). If a station is not
 	// included, its network will be disabled by setting its SSID to a placeholder.
 	StationConfigurations map[string]StationConfiguration `json:"stationConfigurations"`
@@ -31,7 +35,7 @@ var validLinksysChannels = []int{36, 40, 44, 48, 149, 153, 157, 161, 165}
 
 // Validate checks that all parameters within the configuration request have valid values.
 func (request ConfigurationRequest) Validate(radio *Radio) error {
-	if request.Channel == 0 && len(request.StationConfigurations) == 0 {
+	if request.Channel == 0 && request.ChannelBandwidth == "" && len(request.StationConfigurations) == 0 {
 		return errors.New("empty configuration request")
 	}
 
@@ -51,6 +55,16 @@ func (request ConfigurationRequest) Validate(radio *Radio) error {
 		}
 		if !valid {
 			return fmt.Errorf("invalid channel for %s: %d", radio.Type.String(), request.Channel)
+		}
+	}
+
+	if request.ChannelBandwidth != "" {
+		// Validate channel bandwidth.
+		if radio.Type == TypeLinksys {
+			return fmt.Errorf("channel bandwidth cannot be changed on %s", radio.Type.String())
+		}
+		if request.ChannelBandwidth != "HT20" && request.ChannelBandwidth != "HT40" {
+			return fmt.Errorf("invalid channel bandwidth: %s", request.ChannelBandwidth)
 		}
 	}
 
