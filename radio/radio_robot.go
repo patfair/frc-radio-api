@@ -176,6 +176,7 @@ func (radio *Radio) configure(request ConfigurationRequest) error {
 		}
 		time.Sleep(wifiReloadBackoffDuration)
 
+		var err error
 		radio.Ssid, err = getSsid(radioInterface6)
 		if err != nil {
 			return err
