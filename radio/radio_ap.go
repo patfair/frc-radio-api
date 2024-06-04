@@ -22,6 +22,9 @@ type Radio struct {
 	// 5GHz or 6GHz channel number the radio is broadcasting on.
 	Channel int `json:"channel"`
 
+	// Channel bandwidth mode for the radio to use. Valid values are "HT20" and "HT40".
+	ChannelBandwidth string `json:"channelWidth"`
+
 	// Enum representing the current configuration stage of the radio.
 	Status radioStatus `json:"status"`
 
@@ -35,7 +38,7 @@ type Radio struct {
 	ConfigurationRequestChannel chan ConfigurationRequest `json:"-"`
 
 	// Hardware type of the radio.
-	Type radioType `json:"-"`
+	Type RadioType `json:"-"`
 
 	// Name of the radio's Wi-Fi device, dependent on the hardware type.
 	device string
@@ -51,7 +54,7 @@ func NewRadio() *Radio {
 		ConfigurationRequestChannel: make(chan ConfigurationRequest, configurationRequestBufferSize),
 	}
 	radio.determineAndSetType()
-	if radio.Type == typeUnknown {
+	if radio.Type == TypeUnknown {
 		log.Fatal("Unable to determine radio hardware type; exiting.")
 	}
 	log.Printf("Detected radio hardware type: %v", radio.Type)
@@ -59,7 +62,7 @@ func NewRadio() *Radio {
 
 	// Initialize the device and station interface names that are dependent on the hardware type.
 	switch radio.Type {
-	case typeLinksys:
+	case TypeLinksys:
 		radio.device = "radio0"
 		radio.stationInterfaces = map[station]string{
 			red1:  "wlan0",
@@ -69,7 +72,7 @@ func NewRadio() *Radio {
 			blue2: "wlan0-4",
 			blue3: "wlan0-5",
 		}
-	case typeVividHosting:
+	case TypeVividHosting:
 		radio.device = "wifi1"
 		radio.stationInterfaces = map[station]string{
 			red1:  "ath1",
@@ -93,9 +96,9 @@ func NewRadio() *Radio {
 func (radio *Radio) determineAndSetType() {
 	model, _ := uciTree.GetLast("system", "@system[0]", "model")
 	if strings.Contains(model, "VH") {
-		radio.Type = typeVividHosting
+		radio.Type = TypeVividHosting
 	} else {
-		radio.Type = typeLinksys
+		radio.Type = TypeLinksys
 	}
 }
 
@@ -109,6 +112,7 @@ func (radio *Radio) isStarted() bool {
 func (radio *Radio) setInitialState() {
 	channel, _ := uciTree.GetLast("wireless", radio.device, "channel")
 	radio.Channel, _ = strconv.Atoi(channel)
+	radio.ChannelBandwidth, _ = uciTree.GetLast("wireless", radio.device, "htmode")
 	_ = radio.updateStationStatuses()
 }
 
@@ -118,8 +122,12 @@ func (radio *Radio) configure(request ConfigurationRequest) error {
 		uciTree.SetType("wireless", radio.device, "channel", uci.TypeOption, strconv.Itoa(request.Channel))
 		radio.Channel = request.Channel
 	}
+	if request.ChannelBandwidth != "" {
+		uciTree.SetType("wireless", radio.device, "htmode", uci.TypeOption, request.ChannelBandwidth)
+		radio.ChannelBandwidth = request.ChannelBandwidth
+	}
 
-	if radio.Type == typeLinksys {
+	if radio.Type == TypeLinksys {
 		// Clear the state of the radio before loading teams; the Linksys AP is crash-prone otherwise.
 		if err := radio.configureStations(map[string]StationConfiguration{}); err != nil {
 			return err
@@ -148,7 +156,7 @@ func (radio *Radio) configureStations(stationConfigurations map[string]StationCo
 			wifiInterface := fmt.Sprintf("@wifi-iface[%d]", position)
 			uciTree.SetType("wireless", wifiInterface, "ssid", uci.TypeOption, ssid)
 			uciTree.SetType("wireless", wifiInterface, "key", uci.TypeOption, wpaKey)
-			if radio.Type == typeVividHosting {
+			if radio.Type == TypeVividHosting {
 				uciTree.SetType("wireless", wifiInterface, "sae_password", uci.TypeOption, wpaKey)
 			}
 

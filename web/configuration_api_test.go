@@ -11,6 +11,7 @@ import (
 
 func TestWeb_configurationHandler(t *testing.T) {
 	ap := radio.NewRadio()
+	ap.Type = radio.TypeVividHosting
 	web := NewWebServer(ap)
 
 	// Empty request should result in an error.
@@ -40,6 +41,7 @@ func TestWeb_configurationHandler(t *testing.T) {
 		`
 		{
 			"channel": 149,
+			"channelBandwidth": "HT20",
 			"stationConfigurations": {
 				"red1": {"ssid": "9991", "wpaKey": "11111111"},
 				"red2": {"ssid": "9992", "wpaKey": "22222222"},
@@ -56,6 +58,7 @@ func TestWeb_configurationHandler(t *testing.T) {
 	if assert.Equal(t, 1, len(ap.ConfigurationRequestChannel)) {
 		request := <-ap.ConfigurationRequestChannel
 		assert.Equal(t, 149, request.Channel)
+		assert.Equal(t, "HT20", request.ChannelBandwidth)
 		assert.Equal(t, 6, len(request.StationConfigurations))
 		assert.Equal(
 			t, radio.StationConfiguration{Ssid: "9991", WpaKey: "11111111"}, request.StationConfigurations["red1"],

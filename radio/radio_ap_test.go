@@ -26,7 +26,7 @@ func TestNewRadio(t *testing.T) {
 			assert.Nil(t, stationStatus)
 		}
 	}
-	assert.Equal(t, typeVividHosting, radio.Type)
+	assert.Equal(t, TypeVividHosting, radio.Type)
 	assert.NotNil(t, radio.ConfigurationRequestChannel)
 	assert.Equal(t, "wifi1", radio.device)
 	assert.Equal(
@@ -54,7 +54,7 @@ func TestNewRadio(t *testing.T) {
 			assert.Nil(t, stationStatus)
 		}
 	}
-	assert.Equal(t, typeLinksys, radio.Type)
+	assert.Equal(t, TypeLinksys, radio.Type)
 	assert.NotNil(t, radio.ConfigurationRequestChannel)
 	assert.Equal(t, "radio0", radio.device)
 	assert.Equal(
