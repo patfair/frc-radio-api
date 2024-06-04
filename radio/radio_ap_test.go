@@ -101,6 +101,7 @@ func TestRadio_setInitialState(t *testing.T) {
 	radio := NewRadio()
 
 	fakeTree.valuesForGet["wireless.wifi1.channel"] = "23"
+	fakeTree.valuesForGet["wireless.wifi1.htmode"] = "HT20"
 	fakeShell.commandOutput["iwinfo ath1 info"] = "ath1\nESSID: \"1111\"\n"
 	fakeShell.commandOutput["iwinfo ath11 info"] = "ath11\nESSID: \"no-team-2\"\n"
 	fakeShell.commandOutput["iwinfo ath12 info"] = "ath12\nESSID: \"no-team-3\"\n"
@@ -109,6 +110,7 @@ func TestRadio_setInitialState(t *testing.T) {
 	fakeShell.commandOutput["iwinfo ath15 info"] = "ath15\nESSID: \"6666\"\n"
 	radio.setInitialState()
 	assert.Equal(t, 23, radio.Channel)
+	assert.Equal(t, "20MHz", radio.ChannelBandwidth)
 	assert.Equal(t, "1111", radio.StationStatuses["red1"].Ssid)
 	assert.Nil(t, radio.StationStatuses["red2"])
 	assert.Nil(t, radio.StationStatuses["red3"])
