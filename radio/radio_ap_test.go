@@ -390,25 +390,13 @@ func TestRadio_updateStationMonitoring(t *testing.T) {
 	fakeShell.commandOutput["luci-bwc -i wlan0-4"] = ""
 	fakeShell.commandErrors["iwinfo wlan0-4 assoclist"] = errors.New("oops")
 	radio.updateMonitoring()
+	assert.True(t, radio.StationStatuses["red1"].IsRobotRadioLinked)
+	assert.Equal(t, 550.6, radio.StationStatuses["red1"].RxRateMbps)
+	assert.Equal(t, -999.0, radio.StationStatuses["red1"].BandwidthUsedMbps)
 	assert.Equal(
 		t,
 		StationStatus{
-			IsRobotRadioLinked: true,
-			RxRateMbps:         550.6,
-			TxRateMbps:         254.0,
-			SignalNoiseRatio:   42,
-			BandwidthUsedMbps:  -999,
-		},
-		*radio.StationStatuses["red1"],
-	)
-	assert.Equal(
-		t,
-		StationStatus{
-			IsRobotRadioLinked: false,
-			RxRateMbps:         0,
-			TxRateMbps:         0,
-			SignalNoiseRatio:   0,
-			BandwidthUsedMbps:  15.324,
+			BandwidthUsedMbps: 15.324,
 		},
 		*radio.StationStatuses["red3"],
 	)

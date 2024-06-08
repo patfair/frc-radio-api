@@ -44,7 +44,7 @@ func TestStationStatus_ParseAssocList(t *testing.T) {
 	// MAC address is invalid.
 	response := "00:00:00:00:00:00  -53 dBm / -95 dBm (SNR 42)  0 ms ago\n" +
 		"\tRX: 550.6 MBit/s                                4095 Pkts.\n" +
-		"\tTX: 550.6 MBit/s                                   0 Pkts.\n" +
+		"\tTX: 550.6 MBit/s                                 123 Pkts.\n" +
 		"\texpected throughput: unknown"
 	status.parseAssocList(response)
 	assert.Equal(t, StationStatus{}, status)
@@ -52,25 +52,49 @@ func TestStationStatus_ParseAssocList(t *testing.T) {
 	// Link is valid.
 	response = "48:DA:35:B0:00:CF  -53 dBm / -95 dBm (SNR 42)  0 ms ago\n" +
 		"\tRX: 550.6 MBit/s                                4095 Pkts.\n" +
-		"\tTX: 254.0 MBit/s                                   0 Pkts.\n" +
+		"\tTX: 254.0 MBit/s                                 123 Pkts.\n" +
 		"\texpected throughput: unknown"
 	status.parseAssocList(response)
 	assert.Equal(
-		t, StationStatus{IsRobotRadioLinked: true, RxRateMbps: 550.6, TxRateMbps: 254.0, SignalNoiseRatio: 42}, status,
+		t,
+		StationStatus{
+			IsRobotRadioLinked: true,
+			MacAddress:         "48:DA:35:B0:00:CF",
+			SignalDbm:          -53,
+			NoiseDbm:           -95,
+			SignalNoiseRatio:   42,
+			RxRateMbps:         550.6,
+			RxPackets:          4095,
+			TxRateMbps:         254.0,
+			TxPackets:          123,
+		},
+		status,
 	)
-	response = "48:DA:35:B0:00:CF  -53 dBm / -95 dBm (SNR 7)  4000 ms ago\n" +
-		"\tRX: 123.4 MBit/s                                4095 Pkts.\n" +
-		"\tTX: 550.6 MBit/s                                   0 Pkts.\n" +
+	response = "37:DA:35:B0:00:BE  -64 dBm / -84 dBm (SNR 7)  4000 ms ago\n" +
+		"\tRX: 123.4 MBit/s                                5091 Pkts.\n" +
+		"\tTX: 550.6 MBit/s                                 789 Pkts.\n" +
 		"\texpected throughput: unknown"
 	status.parseAssocList(response)
 	assert.Equal(
-		t, StationStatus{IsRobotRadioLinked: true, RxRateMbps: 123.4, TxRateMbps: 550.6, SignalNoiseRatio: 7}, status,
+		t,
+		StationStatus{
+			IsRobotRadioLinked: true,
+			MacAddress:         "37:DA:35:B0:00:BE",
+			SignalDbm:          -64,
+			NoiseDbm:           -84,
+			SignalNoiseRatio:   7,
+			RxRateMbps:         123.4,
+			RxPackets:          5091,
+			TxRateMbps:         550.6,
+			TxPackets:          789,
+		},
+		status,
 	)
 
 	// Link is stale.
 	response = "48:DA:35:B0:00:CF  -53 dBm / -95 dBm (SNR 42)  4001 ms ago\n" +
 		"\tRX: 550.6 MBit/s                                4095 Pkts.\n" +
-		"\tTX: 550.6 MBit/s                                   0 Pkts.\n" +
+		"\tTX: 550.6 MBit/s                                 123 Pkts.\n" +
 		"\texpected throughput: unknown"
 	status.parseAssocList(response)
 	assert.Equal(t, StationStatus{}, status)
