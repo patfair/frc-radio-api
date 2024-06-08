@@ -26,14 +26,29 @@ type StationStatus struct {
 	// Whether a robot radio is currently associated to the access point on this station's SSID.
 	IsRobotRadioLinked bool `json:"isRobotRadioLinked"`
 
+	// MAC address of the robot radio currently associated to the access point on this station's SSID.
+	MacAddress string `json:"macAddress"`
+
+	// Signal strength of the robot radio's link to the access point, in decibel-milliwatts.
+	SignalDbm int `json:"signalDbm"`
+
+	// Noise level of the robot radio's link to the access point, in decibel-milliwatts.
+	NoiseDbm int `json:"noiseDbm"`
+
+	// Current signal-to-noise ratio (SNR) in decibels.
+	SignalNoiseRatio int `json:"signalNoiseRatio"`
+
 	// Upper-bound link receive rate (from the robot radio to the access point) in megabits per second.
 	RxRateMbps float64 `json:"rxRateMbps"`
+
+	// Number of packets received from the robot radio.
+	RxPackets int `json:"rxPackets"`
 
 	// Upper-bound link transmit rate (from the access point to the robot radio) in megabits per second.
 	TxRateMbps float64 `json:"txRateMbps"`
 
-	// Current signal-to-noise ratio (SNR) in decibels.
-	SignalNoiseRatio int `json:"signalNoiseRatio"`
+	// Number of packets transmitted to the robot radio.
+	TxPackets int `json:"txPackets"`
 
 	// Current five-second average total (rx + tx) bandwidth in megabits per second.
 	BandwidthUsedMbps float64 `json:"bandwidthUsedMbps"`
@@ -58,27 +73,39 @@ func (status *StationStatus) parseBandwidthUsed(response string) {
 
 // Parses the given data from the access point's association list and updates the status structure with the result.
 func (status *StationStatus) parseAssocList(response string) {
-	radioLinkRe := regexp.MustCompile("((?:[0-9A-F]{2}:){5}(?:[0-9A-F]{2})).*\\(SNR (\\d+)\\)\\s+(\\d+) ms ago")
-	rxRateRe := regexp.MustCompile("RX:\\s+(\\d+\\.\\d+)\\s+MBit/s")
-	txRateRe := regexp.MustCompile("TX:\\s+(\\d+\\.\\d+)\\s+MBit/s")
+	line1Re := regexp.MustCompile(
+		"((?:[0-9A-F]{2}:){5}(?:[0-9A-F]{2}))\\s+(-\\d+) dBm / (-\\d+) dBm \\(SNR (\\d+)\\)\\s+(\\d+) ms ago",
+	)
+	line2Re := regexp.MustCompile("RX:\\s+(\\d+\\.\\d+)\\s+MBit/s\\s+(\\d+) Pkts.")
+	line3R3 := regexp.MustCompile("TX:\\s+(\\d+\\.\\d+)\\s+MBit/s\\s+(\\d+) Pkts.")
 
 	status.IsRobotRadioLinked = false
-	status.RxRateMbps = 0
-	status.TxRateMbps = 0
+	status.MacAddress = ""
+	status.SignalDbm = 0
+	status.NoiseDbm = 0
 	status.SignalNoiseRatio = 0
-	for _, radioLinkMatch := range radioLinkRe.FindAllStringSubmatch(response, -1) {
-		macAddress := radioLinkMatch[1]
-		dataAgeMs, _ := strconv.Atoi(radioLinkMatch[3])
+	status.RxRateMbps = 0
+	status.RxPackets = 0
+	status.TxRateMbps = 0
+	status.TxPackets = 0
+	for _, line1Match := range line1Re.FindAllStringSubmatch(response, -1) {
+		macAddress := line1Match[1]
+		dataAgeMs, _ := strconv.Atoi(line1Match[5])
 		if macAddress != "00:00:00:00:00:00" && dataAgeMs <= 4000 {
 			status.IsRobotRadioLinked = true
-			status.SignalNoiseRatio, _ = strconv.Atoi(radioLinkMatch[2])
-			rxRateMatch := rxRateRe.FindStringSubmatch(response)
-			if len(rxRateMatch) > 0 {
-				status.RxRateMbps, _ = strconv.ParseFloat(rxRateMatch[1], 64)
+			status.MacAddress = macAddress
+			status.SignalDbm, _ = strconv.Atoi(line1Match[2])
+			status.NoiseDbm, _ = strconv.Atoi(line1Match[3])
+			status.SignalNoiseRatio, _ = strconv.Atoi(line1Match[4])
+			line2Match := line2Re.FindStringSubmatch(response)
+			if len(line2Match) > 0 {
+				status.RxRateMbps, _ = strconv.ParseFloat(line2Match[1], 64)
+				status.RxPackets, _ = strconv.Atoi(line2Match[2])
 			}
-			txRateMatch := txRateRe.FindStringSubmatch(response)
-			if len(txRateMatch) > 0 {
-				status.TxRateMbps, _ = strconv.ParseFloat(txRateMatch[1], 64)
+			line3Match := line3R3.FindStringSubmatch(response)
+			if len(line3Match) > 0 {
+				status.TxRateMbps, _ = strconv.ParseFloat(line3Match[1], 64)
+				status.TxPackets, _ = strconv.Atoi(line3Match[2])
 			}
 			break
 		}
