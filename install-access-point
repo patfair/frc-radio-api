@@ -5,7 +5,6 @@ DEFAULT_TARGET=10.0.100.2
 BINARY_FILE=frc-radio-api
 USER=root
 SSH_ARGS="-o ConnectTimeout=5 -o StrictHostKeyChecking=no"
-API_PORT=8081
 
 read -p "Device IP address [$DEFAULT_TARGET]: " TARGET
 TARGET=${TARGET:-$DEFAULT_TARGET}
@@ -24,9 +23,11 @@ RADIO_TYPE=`ssh $SSH_ARGS $USER@$TARGET "uci get system.@system[0].model 2>&1 | 
 if [ $RADIO_TYPE = "0" ]; then
   echo "Detected Vivid-Hosting radio type."
   CONFIG_FILE=wireless-boot-vh
+  API_PORT=80
 else
   echo "Detected Linksys radio type."
   CONFIG_FILE=wireless-boot-linksys
+  API_PORT=8081
 fi
 
 echo "\nDeploying to $TARGET..."
