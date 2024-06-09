@@ -4,7 +4,7 @@ set -e
 BINARY_FILE=frc-radio-api
 USER=root
 SSH_ARGS="-o ConnectTimeout=5 -o StrictHostKeyChecking=no"
-API_PORT=8081
+API_PORT=80
 
 read -p "Device IP address: " TARGET
 TARGET=${TARGET:-$DEFAULT_TARGET}
