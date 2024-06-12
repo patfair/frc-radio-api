@@ -66,8 +66,10 @@ $ curl http://10.0.100.2:8081/status
       "signalNoiseRatio": 0,
       "rxRateMbps": 0,
       "rxPackets": 0,
+      "rxBytes": 0,
       "txRateMbps": 0,
       "txPackets": 0,
+      "txBytes": 0,
       "bandwidthUsedMbps": 0
     },
     "blue3": null,
@@ -82,8 +84,10 @@ $ curl http://10.0.100.2:8081/status
       "signalNoiseRatio": 40,
       "rxRateMbps": 860.3,
       "rxPackets": 4095,
+      "rxBytes": 5177,
       "txRateMbps": 6,
       "txPackets": 5246,
+      "txBytes": 11830,
       "bandwidthUsedMbps": 4.102
     },
     "red2": null,

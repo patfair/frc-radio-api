@@ -99,3 +99,20 @@ func TestStationStatus_ParseAssocList(t *testing.T) {
 	status.parseAssocList(response)
 	assert.Equal(t, StationStatus{}, status)
 }
+
+func TestStationStatus_ParseIfconfig(t *testing.T) {
+	var status StationStatus
+
+	status.parseIfconfig("")
+	assert.Equal(t, StationStatus{}, status)
+
+	response := "ath15\tLink encap:Ethernet  HWaddr 4A:DA:35:B0:00:2C\n" +
+		"\tinet6 addr: fe80::48da:35ff:feb0:2c/64 Scope:Link\n" +
+		"\tUP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1\n" +
+		"\tRX packets:690 errors:0 dropped:0 overruns:0 frame:0\n" +
+		"\tTX packets:727 errors:0 dropped:0 overruns:0 carrier:0\n " +
+		"\tcollisions:0 txqueuelen:0\n" +
+		"\tRX bytes:45311 (44.2 KiB)  TX bytes:48699 (47.5 KiB)\n"
+	status.parseIfconfig(response)
+	assert.Equal(t, StationStatus{RxBytes: 45311, TxBytes: 48699}, status)
+}

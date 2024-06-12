@@ -44,11 +44,17 @@ type StationStatus struct {
 	// Number of packets received from the robot radio.
 	RxPackets int `json:"rxPackets"`
 
+	// Number of bytes received from the robot radio.
+	RxBytes int `json:"rxBytes"`
+
 	// Upper-bound link transmit rate (from the access point to the robot radio) in megabits per second.
 	TxRateMbps float64 `json:"txRateMbps"`
 
 	// Number of packets transmitted to the robot radio.
 	TxPackets int `json:"txPackets"`
+
+	// Number of bytes transmitted to the robot radio.
+	TxBytes int `json:"txBytes"`
 
 	// Current five-second average total (rx + tx) bandwidth in megabits per second.
 	BandwidthUsedMbps float64 `json:"bandwidthUsedMbps"`
@@ -71,7 +77,8 @@ func (status *StationStatus) parseBandwidthUsed(response string) {
 	}
 }
 
-// Parses the given data from the access point's association list and updates the status structure with the result.
+// parseAssocList parses the given data from the access point's association list and updates the status structure with
+// the result.
 func (status *StationStatus) parseAssocList(response string) {
 	line1Re := regexp.MustCompile(
 		"((?:[0-9A-F]{2}:){5}(?:[0-9A-F]{2}))\\s+(-\\d+) dBm / (-\\d+) dBm \\(SNR (\\d+)\\)\\s+(\\d+) ms ago",
@@ -109,5 +116,19 @@ func (status *StationStatus) parseAssocList(response string) {
 			}
 			break
 		}
+	}
+}
+
+// parseIfconfig parses the given output from the access point's ifconfig command and updates the status structure with
+// the result.
+func (status *StationStatus) parseIfconfig(response string) {
+	bytesRe := regexp.MustCompile("RX bytes:(\\d+) .* TX bytes:(\\d+) ")
+
+	status.RxBytes = 0
+	status.TxBytes = 0
+	bytesMatch := bytesRe.FindStringSubmatch(response)
+	if len(bytesMatch) > 0 {
+		status.RxBytes, _ = strconv.Atoi(bytesMatch[1])
+		status.TxBytes, _ = strconv.Atoi(bytesMatch[2])
 	}
 }
