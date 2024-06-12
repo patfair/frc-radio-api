@@ -379,6 +379,8 @@ func TestRadio_updateStationMonitoring(t *testing.T) {
 		"\tRX: 550.6 MBit/s                                4095 Pkts.\n" +
 		"\tTX: 254.0 MBit/s                                   0 Pkts.\n" +
 		"\texpected throughput: unknown"
+	fakeShell.commandOutput["ifconfig wlan0"] = "wlan0\tLink encap:Ethernet  HWaddr 00:00:00:00:00:00\n" +
+		"\tRX bytes:12345 (12.3 KiB)  TX bytes:98765 (98.7 KiB)"
 	fakeShell.commandOutput["luci-bwc -i wlan0-2"] = "[ 1687496917, 26097, 177, 70454, 846 ],\n" +
 		"[ 1687496919, 26097, 177, 70454, 846 ],\n" +
 		"[ 1687496920, 26097, 177, 70518, 847 ],\n" +
@@ -387,12 +389,16 @@ func TestRadio_updateStationMonitoring(t *testing.T) {
 		"[ 1687496922, 26097, 177, 70582, 848 ],\n" +
 		"[ 1687496923, 2609700, 177, 7064600, 849 ]"
 	fakeShell.commandOutput["iwinfo wlan0-2 assoclist"] = ""
+	fakeShell.commandOutput["ifconfig wlan0-2"] = ""
 	fakeShell.commandOutput["luci-bwc -i wlan0-4"] = ""
 	fakeShell.commandErrors["iwinfo wlan0-4 assoclist"] = errors.New("oops")
+	fakeShell.commandErrors["ifconfig wlan0-4"] = errors.New("oops")
 	radio.updateMonitoring()
 	assert.True(t, radio.StationStatuses["red1"].IsRobotRadioLinked)
 	assert.Equal(t, 550.6, radio.StationStatuses["red1"].RxRateMbps)
 	assert.Equal(t, -999.0, radio.StationStatuses["red1"].BandwidthUsedMbps)
+	assert.Equal(t, 12345, radio.StationStatuses["red1"].RxBytes)
+	assert.Equal(t, 98765, radio.StationStatuses["red1"].TxBytes)
 	assert.Equal(
 		t,
 		StationStatus{
@@ -405,17 +411,22 @@ func TestRadio_updateStationMonitoring(t *testing.T) {
 		StationStatus{
 			IsRobotRadioLinked: false,
 			RxRateMbps:         -999,
+			RxBytes:            -999,
 			TxRateMbps:         -999,
+			TxBytes:            -999,
 			SignalNoiseRatio:   -999,
 			BandwidthUsedMbps:  0,
 		},
 		*radio.StationStatuses["blue2"],
 	)
-	assert.Equal(t, 6, len(fakeShell.commandsRun))
+	assert.Equal(t, 9, len(fakeShell.commandsRun))
 	assert.Contains(t, fakeShell.commandsRun, "luci-bwc -i wlan0")
 	assert.Contains(t, fakeShell.commandsRun, "iwinfo wlan0 assoclist")
+	assert.Contains(t, fakeShell.commandsRun, "ifconfig wlan0")
 	assert.Contains(t, fakeShell.commandsRun, "luci-bwc -i wlan0-2")
 	assert.Contains(t, fakeShell.commandsRun, "iwinfo wlan0-2 assoclist")
+	assert.Contains(t, fakeShell.commandsRun, "ifconfig wlan0-2")
 	assert.Contains(t, fakeShell.commandsRun, "luci-bwc -i wlan0-4")
 	assert.Contains(t, fakeShell.commandsRun, "iwinfo wlan0-4 assoclist")
+	assert.Contains(t, fakeShell.commandsRun, "ifconfig wlan0-4")
 }

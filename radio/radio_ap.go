@@ -272,5 +272,15 @@ func (radio *Radio) updateMonitoring() {
 		} else {
 			stationStatus.parseAssocList(output)
 		}
+
+		// Update the number of bytes received and transmitted.
+		output, err = shell.runCommand("ifconfig", stationInterface)
+		if err != nil {
+			log.Printf("Error running 'ifconfig %s': %v", stationInterface, err)
+			stationStatus.RxBytes = monitoringErrorCode
+			stationStatus.TxBytes = monitoringErrorCode
+		} else {
+			stationStatus.parseIfconfig(output)
+		}
 	}
 }
