@@ -371,9 +371,9 @@ func TestRadio_updateStationMonitoring(t *testing.T) {
 
 	// Some teams assigned.
 	fakeShell.reset()
-	radio.StationStatuses["red1"] = &StationStatus{}
-	radio.StationStatuses["red3"] = &StationStatus{}
-	radio.StationStatuses["blue2"] = &StationStatus{}
+	radio.StationStatuses["red1"] = &NetworkStatus{}
+	radio.StationStatuses["red3"] = &NetworkStatus{}
+	radio.StationStatuses["blue2"] = &NetworkStatus{}
 	fakeShell.commandErrors["luci-bwc -i wlan0"] = errors.New("oops")
 	fakeShell.commandOutput["iwinfo wlan0 assoclist"] = "48:DA:35:B0:00:CF  -53 dBm / -95 dBm (SNR 42)  0 ms ago\n" +
 		"\tRX: 550.6 MBit/s                                4095 Pkts.\n" +
@@ -394,28 +394,28 @@ func TestRadio_updateStationMonitoring(t *testing.T) {
 	fakeShell.commandErrors["iwinfo wlan0-4 assoclist"] = errors.New("oops")
 	fakeShell.commandErrors["ifconfig wlan0-4"] = errors.New("oops")
 	radio.updateMonitoring()
-	assert.True(t, radio.StationStatuses["red1"].IsRobotRadioLinked)
+	assert.True(t, radio.StationStatuses["red1"].IsLinked)
 	assert.Equal(t, 550.6, radio.StationStatuses["red1"].RxRateMbps)
 	assert.Equal(t, -999.0, radio.StationStatuses["red1"].BandwidthUsedMbps)
 	assert.Equal(t, 12345, radio.StationStatuses["red1"].RxBytes)
 	assert.Equal(t, 98765, radio.StationStatuses["red1"].TxBytes)
 	assert.Equal(
 		t,
-		StationStatus{
+		NetworkStatus{
 			BandwidthUsedMbps: 15.324,
 		},
 		*radio.StationStatuses["red3"],
 	)
 	assert.Equal(
 		t,
-		StationStatus{
-			IsRobotRadioLinked: false,
-			RxRateMbps:         -999,
-			RxBytes:            -999,
-			TxRateMbps:         -999,
-			TxBytes:            -999,
-			SignalNoiseRatio:   -999,
-			BandwidthUsedMbps:  0,
+		NetworkStatus{
+			IsLinked:          false,
+			RxRateMbps:        -999,
+			RxBytes:           -999,
+			TxRateMbps:        -999,
+			TxBytes:           -999,
+			SignalNoiseRatio:  -999,
+			BandwidthUsedMbps: 0,
 		},
 		*radio.StationStatuses["blue2"],
 	)

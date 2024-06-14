@@ -9,12 +9,13 @@ import (
 	"strconv"
 )
 
-// StationStatus encapsulates the status of a single team station on the q point.
-type StationStatus struct {
-	// Team-specific SSID for the station, usually equal to the team number as a string.
+// NetworkStatus encapsulates the status of a single Wi-Fi interface on the device (i.e. a team SSID network on the
+// access point or one of the two interfaces on the robot radio).
+type NetworkStatus struct {
+	// SSID for the network.
 	Ssid string `json:"ssid"`
 
-	// SHA-256 hash of the WPA key and salt for the station, encoded as a hexadecimal string. The WPA key is not exposed
+	// SHA-256 hash of the WPA key and salt for the network, encoded as a hexadecimal string. The WPA key is not exposed
 	// directly to prevent unauthorized users from learning its value. However, a user who already knows the WPA key can
 	// verify that it is correct by concatenating it with the WpaKeySalt and hashing the result using SHA-256; the
 	// result should match the HashedWpaKey.
@@ -23,46 +24,48 @@ type StationStatus struct {
 	// Randomly generated salt used to hash the WPA key.
 	WpaKeySalt string `json:"wpaKeySalt"`
 
-	// Whether a robot radio is currently associated to the access point on this station's SSID.
-	IsRobotRadioLinked bool `json:"isRobotRadioLinked"`
+	// Whether this network is currently associated with a remote device.
+	IsLinked bool `json:"isLinked"`
 
-	// MAC address of the robot radio currently associated to the access point on this station's SSID.
+	// MAC address of the remote device currently associated with this network. Blank if not associated.
 	MacAddress string `json:"macAddress"`
 
-	// Signal strength of the robot radio's link to the access point, in decibel-milliwatts.
+	// Signal strength of the link to the remote device, in decibel-milliwatts. Zero if not associated.
 	SignalDbm int `json:"signalDbm"`
 
-	// Noise level of the robot radio's link to the access point, in decibel-milliwatts.
+	// Noise level of the link to the remote device, in decibel-milliwatts. Zero if not associated.
 	NoiseDbm int `json:"noiseDbm"`
 
-	// Current signal-to-noise ratio (SNR) in decibels.
+	// Current signal-to-noise ratio (SNR) in decibels. Zero if not associated.
 	SignalNoiseRatio int `json:"signalNoiseRatio"`
 
-	// Upper-bound link receive rate (from the robot radio to the access point) in megabits per second.
+	// Upper-bound link receive rate (from the remote device to this one) in megabits per second. Zero if not
+	// associated.
 	RxRateMbps float64 `json:"rxRateMbps"`
 
-	// Number of packets received from the robot radio.
+	// Number of packets received from the remote device. Zero if not associated.
 	RxPackets int `json:"rxPackets"`
 
-	// Number of bytes received from the robot radio.
+	// Number of bytes received from the remote device. Zero if not associated.
 	RxBytes int `json:"rxBytes"`
 
-	// Upper-bound link transmit rate (from the access point to the robot radio) in megabits per second.
+	// Upper-bound link transmit rate (from this device to the remote one) in megabits per second. Zero if not
+	// associated.
 	TxRateMbps float64 `json:"txRateMbps"`
 
-	// Number of packets transmitted to the robot radio.
+	// Number of packets transmitted to the remote device. Zero if not associated.
 	TxPackets int `json:"txPackets"`
 
-	// Number of bytes transmitted to the robot radio.
+	// Number of bytes transmitted to the remote device. Zero if not associated.
 	TxBytes int `json:"txBytes"`
 
 	// Current five-second average total (rx + tx) bandwidth in megabits per second.
 	BandwidthUsedMbps float64 `json:"bandwidthUsedMbps"`
 }
 
-// parseBandwidthUsed parses the given data from the access point's onboard bandwidth monitor and returns five-second
-// average bandwidth in megabits per second.
-func (status *StationStatus) parseBandwidthUsed(response string) {
+// parseBandwidthUsed parses the given data from the radio's onboard bandwidth monitor and returns five-second average
+// bandwidth in megabits per second.
+func (status *NetworkStatus) parseBandwidthUsed(response string) {
 	status.BandwidthUsedMbps = 0.0
 	btuRe := regexp.MustCompile("\\[ (\\d+), (\\d+), (\\d+), (\\d+), (\\d+) ]")
 	btuMatches := btuRe.FindAllStringSubmatch(response, -1)
@@ -77,16 +80,16 @@ func (status *StationStatus) parseBandwidthUsed(response string) {
 	}
 }
 
-// parseAssocList parses the given data from the access point's association list and updates the status structure with
-// the result.
-func (status *StationStatus) parseAssocList(response string) {
+// parseAssocList parses the given data from the radio's association list and updates the status structure with the
+// result.
+func (status *NetworkStatus) parseAssocList(response string) {
 	line1Re := regexp.MustCompile(
 		"((?:[0-9A-F]{2}:){5}(?:[0-9A-F]{2}))\\s+(-\\d+) dBm / (-\\d+) dBm \\(SNR (\\d+)\\)\\s+(\\d+) ms ago",
 	)
 	line2Re := regexp.MustCompile("RX:\\s+(\\d+\\.\\d+)\\s+MBit/s\\s+(\\d+) Pkts.")
 	line3R3 := regexp.MustCompile("TX:\\s+(\\d+\\.\\d+)\\s+MBit/s\\s+(\\d+) Pkts.")
 
-	status.IsRobotRadioLinked = false
+	status.IsLinked = false
 	status.MacAddress = ""
 	status.SignalDbm = 0
 	status.NoiseDbm = 0
@@ -99,7 +102,7 @@ func (status *StationStatus) parseAssocList(response string) {
 		macAddress := line1Match[1]
 		dataAgeMs, _ := strconv.Atoi(line1Match[5])
 		if macAddress != "00:00:00:00:00:00" && dataAgeMs <= 4000 {
-			status.IsRobotRadioLinked = true
+			status.IsLinked = true
 			status.MacAddress = macAddress
 			status.SignalDbm, _ = strconv.Atoi(line1Match[2])
 			status.NoiseDbm, _ = strconv.Atoi(line1Match[3])
@@ -119,9 +122,9 @@ func (status *StationStatus) parseAssocList(response string) {
 	}
 }
 
-// parseIfconfig parses the given output from the access point's ifconfig command and updates the status structure with
-// the result.
-func (status *StationStatus) parseIfconfig(response string) {
+// parseIfconfig parses the given output from the radio's ifconfig command and updates the status structure with the
+// result.
+func (status *NetworkStatus) parseIfconfig(response string) {
 	bytesRe := regexp.MustCompile("RX bytes:(\\d+) .* TX bytes:(\\d+) ")
 
 	status.RxBytes = 0
