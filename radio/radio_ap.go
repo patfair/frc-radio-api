@@ -29,7 +29,7 @@ type Radio struct {
 	Status radioStatus `json:"status"`
 
 	// Map of team station names to their current status.
-	StationStatuses map[string]*StationStatus `json:"stationStatuses"`
+	StationStatuses map[string]*NetworkStatus `json:"stationStatuses"`
 
 	// Version of the radio software.
 	Version string `json:"version"`
@@ -84,7 +84,7 @@ func NewRadio() *Radio {
 		}
 	}
 
-	radio.StationStatuses = make(map[string]*StationStatus)
+	radio.StationStatuses = make(map[string]*NetworkStatus)
 	for i := 0; i < int(stationCount); i++ {
 		radio.StationStatuses[station(i).String()] = nil
 	}
@@ -214,7 +214,7 @@ func (radio *Radio) updateStationStatuses() error {
 		if strings.HasPrefix(ssid, "no-team-") {
 			radio.StationStatuses[station.String()] = nil
 		} else {
-			var status StationStatus
+			var status NetworkStatus
 			status.Ssid = ssid
 			status.HashedWpaKey, status.WpaKeySalt = radio.getHashedWpaKeyAndSalt(int(station) + 1)
 			radio.StationStatuses[station.String()] = &status

@@ -16,15 +16,15 @@ func TestWeb_statusHandler(t *testing.T) {
 
 	ap.Channel = 136
 	ap.Status = "ACTIVE"
-	ap.StationStatuses["blue1"] = &radio.StationStatus{
-		Ssid:               "254",
-		HashedWpaKey:       "foo",
-		WpaKeySalt:         "bar",
-		IsRobotRadioLinked: true,
-		RxRateMbps:         1.0,
-		TxRateMbps:         2.0,
-		SignalNoiseRatio:   3,
-		BandwidthUsedMbps:  4.0,
+	ap.StationStatuses["blue1"] = &radio.NetworkStatus{
+		Ssid:              "254",
+		HashedWpaKey:      "foo",
+		WpaKeySalt:        "bar",
+		IsLinked:          true,
+		RxRateMbps:        1.0,
+		TxRateMbps:        2.0,
+		SignalNoiseRatio:  3,
+		BandwidthUsedMbps: 4.0,
 	}
 
 	recorder := web.getHttpResponse("/status")
