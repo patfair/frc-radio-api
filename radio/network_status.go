@@ -1,12 +1,15 @@
-// This file is specific to the access point version of the API.
-//go:build !robot
-
 package radio
 
 import (
+	"log"
 	"math"
 	"regexp"
 	"strconv"
+)
+
+const (
+	// Sentinel value used to populate status fields when a monitoring command failed.
+	monitoringErrorCode = -999
 )
 
 // NetworkStatus encapsulates the status of a single Wi-Fi interface on the device (i.e. a team SSID network on the
@@ -61,6 +64,40 @@ type NetworkStatus struct {
 
 	// Current five-second average total (rx + tx) bandwidth in megabits per second.
 	BandwidthUsedMbps float64 `json:"bandwidthUsedMbps"`
+}
+
+// updateMonitoring polls the access point for the current bandwidth usage and link state of the given network interface
+// and updates the in-memory state.
+func (status *NetworkStatus) updateMonitoring(networkInterface string) {
+	// Update the bandwidth usage.
+	output, err := shell.runCommand("luci-bwc", "-i", networkInterface)
+	if err != nil {
+		log.Printf("Error running 'luci-bwc -i %s': %v", networkInterface, err)
+		status.BandwidthUsedMbps = monitoringErrorCode
+	} else {
+		status.parseBandwidthUsed(output)
+	}
+
+	// Update the link state of any associated robot radios.
+	output, err = shell.runCommand("iwinfo", networkInterface, "assoclist")
+	if err != nil {
+		log.Printf("Error running 'iwinfo %s assoclist': %v", networkInterface, err)
+		status.RxRateMbps = monitoringErrorCode
+		status.TxRateMbps = monitoringErrorCode
+		status.SignalNoiseRatio = monitoringErrorCode
+	} else {
+		status.parseAssocList(output)
+	}
+
+	// Update the number of bytes received and transmitted.
+	output, err = shell.runCommand("ifconfig", networkInterface)
+	if err != nil {
+		log.Printf("Error running 'ifconfig %s': %v", networkInterface, err)
+		status.RxBytes = monitoringErrorCode
+		status.TxBytes = monitoringErrorCode
+	} else {
+		status.parseIfconfig(output)
+	}
 }
 
 // parseBandwidthUsed parses the given data from the radio's onboard bandwidth monitor and returns five-second average

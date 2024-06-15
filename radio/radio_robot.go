@@ -12,15 +12,6 @@ import (
 )
 
 const (
-	// Name of the radio's 6GHz Wi-Fi device.
-	radioDevice6 = "wifi1"
-
-	// Name of the radio's 6GHz Wi-Fi interface.
-	radioInterface6 = "ath1"
-
-	// Index of the radio's 6GHz Wi-Fi interface section in the UCI configuration.
-	radioInterfaceIndex6 = 1
-
 	// Name of the radio's 2.4GHz Wi-Fi device.
 	radioDevice24 = "wifi0"
 
@@ -29,6 +20,15 @@ const (
 
 	// Index of the radio's 2.4GHz Wi-Fi interface section in the UCI configuration.
 	radioInterfaceIndex24 = 0
+
+	// Name of the radio's 6GHz Wi-Fi device.
+	radioDevice6 = "wifi1"
+
+	// Name of the radio's 6GHz Wi-Fi interface.
+	radioInterface6 = "ath1"
+
+	// Index of the radio's 6GHz Wi-Fi interface section in the UCI configuration.
+	radioInterfaceIndex6 = 1
 )
 
 // Radio holds the current state of the access point's configuration and any robot radios connected to it.
@@ -42,17 +42,11 @@ type Radio struct {
 	// Team number that the radio is currently configured for.
 	TeamNumber int `json:"teamNumber"`
 
-	// Team-specific SSID.
-	Ssid string `json:"ssid"`
+	// Status of the radio's 2.4GHz network.
+	NetworkStatus24 NetworkStatus `json:"networkStatus24"`
 
-	// SHA-256 hash of the WPA key and salt for the team, encoded as a hexadecimal string. The WPA key is not exposed
-	// directly to prevent unauthorized users from learning its value. However, a user who already knows the WPA key can
-	// verify that it is correct by concatenating it with the WpaKeySalt and hashing the result using SHA-256; the
-	// result should match the HashedWpaKey.
-	HashedWpaKey string `json:"hashedWpaKey"`
-
-	// Randomly generated salt used to hash the WPA key.
-	WpaKeySalt string `json:"wpaKeySalt"`
+	// Status of the radio's 6GHz network.
+	NetworkStatus6 NetworkStatus `json:"networkStatus6"`
 
 	// Enum representing the current configuration stage of the radio.
 	Status radioStatus `json:"status"`
@@ -95,8 +89,9 @@ func (radio *Radio) isStarted() bool {
 
 // setInitialState initializes the in-memory state to match the radio's current configuration.
 func (radio *Radio) setInitialState() {
-	wifiInterface := fmt.Sprintf("@wifi-iface[%d]", radioInterfaceIndex6)
-	mode, _ := uciTree.GetLast("wireless", wifiInterface, "mode")
+	wifiInterface24 := fmt.Sprintf("@wifi-iface[%d]", radioInterfaceIndex24)
+	wifiInterface6 := fmt.Sprintf("@wifi-iface[%d]", radioInterfaceIndex6)
+	mode, _ := uciTree.GetLast("wireless", wifiInterface6, "mode")
 	if mode == "sta" {
 		radio.Mode = modeTeamRobotRadio
 		radio.Channel = ""
@@ -104,9 +99,14 @@ func (radio *Radio) setInitialState() {
 		radio.Mode = modeTeamAccessPoint
 		radio.Channel, _ = uciTree.GetLast("wireless", radioDevice6, "channel")
 	}
-	radio.Ssid, _ = uciTree.GetLast("wireless", wifiInterface, "ssid")
-	radio.TeamNumber, _ = strconv.Atoi(radio.Ssid)
-	radio.HashedWpaKey, radio.WpaKeySalt = radio.getHashedWpaKeyAndSalt(radioInterfaceIndex6)
+
+	radio.NetworkStatus24.Ssid, _ = uciTree.GetLast("wireless", wifiInterface24, "ssid")
+	radio.NetworkStatus24.HashedWpaKey, radio.NetworkStatus24.WpaKeySalt =
+		radio.getHashedWpaKeyAndSalt(radioInterfaceIndex24)
+	radio.NetworkStatus6.Ssid, _ = uciTree.GetLast("wireless", wifiInterface6, "ssid")
+	radio.NetworkStatus6.HashedWpaKey, radio.NetworkStatus6.WpaKeySalt =
+		radio.getHashedWpaKeyAndSalt(radioInterfaceIndex6)
+	radio.TeamNumber, _ = strconv.Atoi(radio.NetworkStatus6.Ssid)
 }
 
 // configure configures the radio with the given configuration.
@@ -177,12 +177,13 @@ func (radio *Radio) configure(request ConfigurationRequest) error {
 		time.Sleep(wifiReloadBackoffDuration)
 
 		var err error
-		radio.Ssid, err = getSsid(radioInterface6)
+		radio.NetworkStatus6.Ssid, err = getSsid(radioInterface6)
 		if err != nil {
 			return err
 		}
-		radio.TeamNumber, _ = strconv.Atoi(radio.Ssid)
-		radio.HashedWpaKey, radio.WpaKeySalt = radio.getHashedWpaKeyAndSalt(radioInterfaceIndex6)
+		radio.TeamNumber, _ = strconv.Atoi(radio.NetworkStatus6.Ssid)
+		radio.NetworkStatus6.HashedWpaKey, radio.NetworkStatus6.WpaKeySalt =
+			radio.getHashedWpaKeyAndSalt(radioInterfaceIndex6)
 		if radio.TeamNumber == request.TeamNumber {
 			log.Printf("Successfully configured robot radio after %d attempts.", retryCount)
 			break
@@ -196,7 +197,9 @@ func (radio *Radio) configure(request ConfigurationRequest) error {
 	return nil
 }
 
-// updateMonitoring is a no-op for the robot radio, for the time being, since the API is only used for
-// one-time-per-event configuration.
+// updateMonitoring polls the access point for the current bandwidth usage and link state of each network and updates
+// the in-memory state.
 func (radio *Radio) updateMonitoring() {
+	radio.NetworkStatus6.updateMonitoring(radioInterface6)
+	radio.NetworkStatus24.updateMonitoring(radioInterface24)
 }

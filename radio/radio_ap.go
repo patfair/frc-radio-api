@@ -12,11 +12,6 @@ import (
 	"time"
 )
 
-const (
-	// Sentinel value used to populate status fields when a monitoring command failed.
-	monitoringErrorCode = -999
-)
-
 // Radio holds the current state of the access point's configuration and any robot radios connected to it.
 type Radio struct {
 	// 5GHz or 6GHz channel number the radio is broadcasting on.
@@ -253,34 +248,6 @@ func (radio *Radio) updateMonitoring() {
 			continue
 		}
 
-		// Update the bandwidth usage.
-		output, err := shell.runCommand("luci-bwc", "-i", stationInterface)
-		if err != nil {
-			log.Printf("Error running 'luci-bwc -i %s': %v", stationInterface, err)
-			stationStatus.BandwidthUsedMbps = monitoringErrorCode
-		} else {
-			stationStatus.parseBandwidthUsed(output)
-		}
-
-		// Update the link state of any associated robot radios.
-		output, err = shell.runCommand("iwinfo", stationInterface, "assoclist")
-		if err != nil {
-			log.Printf("Error running 'iwinfo %s assoclist': %v", stationInterface, err)
-			stationStatus.RxRateMbps = monitoringErrorCode
-			stationStatus.TxRateMbps = monitoringErrorCode
-			stationStatus.SignalNoiseRatio = monitoringErrorCode
-		} else {
-			stationStatus.parseAssocList(output)
-		}
-
-		// Update the number of bytes received and transmitted.
-		output, err = shell.runCommand("ifconfig", stationInterface)
-		if err != nil {
-			log.Printf("Error running 'ifconfig %s': %v", stationInterface, err)
-			stationStatus.RxBytes = monitoringErrorCode
-			stationStatus.TxBytes = monitoringErrorCode
-		} else {
-			stationStatus.parseIfconfig(output)
-		}
+		stationStatus.updateMonitoring(stationInterface)
 	}
 }

@@ -359,7 +359,7 @@ func TestRadio_handleConfigurationRequestErrors(t *testing.T) {
 	assert.Greater(t, fakeTree.commitCount, 20)
 }
 
-func TestRadio_updateStationMonitoring(t *testing.T) {
+func TestRadio_updateMonitoring(t *testing.T) {
 	fakeShell := newFakeShell(t)
 	shell = fakeShell
 	fakeShell.commandOutput["sh -c source /etc/openwrt_release && echo $DISTRIB_DESCRIPTION"] = ""
