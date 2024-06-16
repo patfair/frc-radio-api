@@ -150,9 +150,40 @@ The `/status` GET endpoint returns the current status of the robot radio. It ret
 $ curl http://10.12.34.1:8081/status
 {
   "teamNumber": 1234,
-  "ssid": "1234",
-  "hashedWpaKey": "d40e29b90743ddf71c75bfaedab1333e23bf43eb29f5c8c1ba55756e96e99d84",
-  "wpaKeySalt": "DzCKbEIu53vCmf0p",
+  "networkStatus24": {
+    "ssid": "FRC-1234",
+    "hashedWpaKey": "5147695f755c47cda0c60ec59b6a278cc3a6b217e78ad4a4480f9d027a139c40",
+    "wpaKeySalt": "n5OZJgKdhjWQgRXL",
+    "isLinked": false,
+    "macAddress": "",
+    "signalDbm": 0,
+    "noiseDbm": 0,
+    "signalNoiseRatio": 0,
+    "rxRateMbps": 0,
+    "rxPackets": 0,
+    "rxBytes": 0,
+    "txRateMbps": 0,
+    "txPackets": 0,
+    "txBytes": 0,
+    "bandwidthUsedMbps": 0
+  },
+  "networkStatus6": {
+    "ssid": "1234",
+    "hashedWpaKey": "4430f81c11c7bad4d36a886be2ca3b34deb5fd6c8a71ccaf244a22c44ce062e8",
+    "wpaKeySalt": "darLGfhgtJazer9C",
+    "isLinked": true,
+    "macAddress": "4A:DA:35:B0:3A:27",
+    "signalDbm": -56,
+    "noiseDbm": -93,
+    "signalNoiseRatio": 37,
+    "rxRateMbps": 7.3,
+    "rxPackets": 4095,
+    "rxBytes": 344,
+    "txRateMbps": 516.2,
+    "txPackets": 0,
+    "txBytes": 52765,
+    "bandwidthUsedMbps": 0.002
+  },
   "status": "ACTIVE",
   "version": "1.2.3"
 }
@@ -174,8 +205,8 @@ $ curl http://10.56.78.1:8081/status
 {
   "teamNumber": 5678,
   "ssid": "5678",
-  "hashedWpaKey": "63b7edb8b5c6b832dd495220e67d65414238165b92ef1feb52d6f39c052ac693",
-  "wpaKeySalt": "6BjRXMUm3kExcAiR",
+  "networkStatus24": [...],
+  "networkStatus6": [...],
   "status": "ACTIVE"
 }
 ```
