@@ -12,5 +12,7 @@ const (
 	blue1
 	blue2
 	blue3
-	stationCount
+	spare1
+	spare2
+	spare3
 )
