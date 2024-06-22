@@ -37,6 +37,23 @@ func TestConfigurationRequest_Validate(t *testing.T) {
 	err = request.Validate(linksysRadio)
 	assert.EqualError(t, err, "channel bandwidth cannot be changed on TypeLinksys")
 
+	// Invalid VLANs.
+	request = ConfigurationRequest{RedVlans: "10_20_30"}
+	err = request.Validate(linksysRadio)
+	assert.EqualError(t, err, "both red and blue VLANs must be specified")
+	request = ConfigurationRequest{BlueVlans: "10_20_30"}
+	err = request.Validate(linksysRadio)
+	assert.EqualError(t, err, "both red and blue VLANs must be specified")
+	request = ConfigurationRequest{RedVlans: "20_30_40", BlueVlans: "30_40_50"}
+	err = request.Validate(linksysRadio)
+	assert.EqualError(t, err, "invalid value for red VLANs: 20_30_40")
+	request = ConfigurationRequest{RedVlans: "70_80_90", BlueVlans: "30_40_50"}
+	err = request.Validate(linksysRadio)
+	assert.EqualError(t, err, "invalid value for blue VLANs: 30_40_50")
+	request = ConfigurationRequest{RedVlans: "70_80_90", BlueVlans: "70_80_90"}
+	err = request.Validate(linksysRadio)
+	assert.EqualError(t, err, "red and blue VLANs cannot be the same")
+
 	// Invalid station.
 	request = ConfigurationRequest{
 		StationConfigurations: map[string]StationConfiguration{"red4": {Ssid: "254", WpaKey: "12345678"}},

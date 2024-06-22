@@ -125,7 +125,9 @@ config wifi-iface
 	option hidden '1'
 	option network 'vlan70'
 	option encryption 'psk2+ccmp'
-	option disabled '1'
+	option ssid 'no-team-7'
+	option key 'no-team-7'
+	option disabled '0'
 
 config wifi-iface
 	option device 'radio0'
@@ -137,7 +139,9 @@ config wifi-iface
 	option hidden '1'
 	option network 'vlan80'
 	option encryption 'psk2+ccmp'
-	option disabled '1'
+	option ssid 'no-team-8'
+	option key 'no-team-8'
+	option disabled '0'
 
 config wifi-iface
 	option device 'radio0'
@@ -149,5 +153,6 @@ config wifi-iface
 	option hidden '1'
 	option network 'vlan90'
 	option encryption 'psk2+ccmp'
-	option disabled '1'
-
+	option ssid 'no-team-9'
+	option key 'no-team-9'
+	option disabled '0'

@@ -20,6 +20,12 @@ type ConfigurationRequest struct {
 	// leave unchanged.
 	ChannelBandwidth string `json:"channelBandwidth"`
 
+	// VLANs to use for the teams of the red alliance. Valid values are "10_20_30", "40_50_60", and "70_80_90".
+	RedVlans AllianceVlans `json:"redVlans"`
+
+	// VLANs to use for the teams of the blue alliance. Valid values are "10_20_30", "40_50_60", and "70_80_90".
+	BlueVlans AllianceVlans `json:"blueVlans"`
+
 	// SSID and WPA key for each team station, keyed by alliance and number (e.g. "red1", "blue3). If a station is not
 	// included, its network will be disabled by setting its SSID to a placeholder.
 	StationConfigurations map[string]StationConfiguration `json:"stationConfigurations"`
@@ -38,7 +44,8 @@ var validLinksysChannels = []int{36, 40, 44, 48, 149, 153, 157, 161, 165}
 
 // Validate checks that all parameters within the configuration request have valid values.
 func (request ConfigurationRequest) Validate(radio *Radio) error {
-	if request.Channel == 0 && request.ChannelBandwidth == "" && len(request.StationConfigurations) == 0 {
+	if request.Channel == 0 && request.ChannelBandwidth == "" && len(request.StationConfigurations) == 0 &&
+		request.RedVlans == "" && request.BlueVlans == "" {
 		return errors.New("empty configuration request")
 	}
 
@@ -71,10 +78,26 @@ func (request ConfigurationRequest) Validate(radio *Radio) error {
 		}
 	}
 
+	if request.RedVlans != "" || request.BlueVlans != "" {
+		if request.RedVlans == "" || request.BlueVlans == "" {
+			return errors.New("both red and blue VLANs must be specified")
+		}
+		validVlans := map[AllianceVlans]struct{}{Vlans102030: {}, Vlans405060: {}, Vlans708090: {}}
+		if _, ok := validVlans[request.RedVlans]; !ok {
+			return fmt.Errorf("invalid value for red VLANs: %s", request.RedVlans)
+		}
+		if _, ok := validVlans[request.BlueVlans]; !ok {
+			return fmt.Errorf("invalid value for blue VLANs: %s", request.BlueVlans)
+		}
+		if request.RedVlans == request.BlueVlans {
+			return fmt.Errorf("red and blue VLANs cannot be the same")
+		}
+	}
+
 	// Validate station configurations.
 	for stationName, stationConfiguration := range request.StationConfigurations {
 		stationNameValid := false
-		for name := red1; name < stationCount; name++ {
+		for name := red1; name <= blue3; name++ {
 			if stationName == name.String() {
 				stationNameValid = true
 				break

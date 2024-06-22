@@ -19,8 +19,8 @@ func TestNewRadio(t *testing.T) {
 	radio := NewRadio()
 	assert.Equal(t, 0, radio.Channel)
 	assert.Equal(t, statusBooting, radio.Status)
-	if assert.Equal(t, int(stationCount), len(radio.StationStatuses)) {
-		for i := 0; i < int(stationCount); i++ {
+	if assert.Equal(t, 6, len(radio.StationStatuses)) {
+		for i := 0; i < 6; i++ {
 			stationStatus, ok := radio.StationStatuses[station(i).String()]
 			assert.True(t, ok)
 			assert.Nil(t, stationStatus)
@@ -31,15 +31,18 @@ func TestNewRadio(t *testing.T) {
 	assert.Equal(t, "wifi1", radio.device)
 	assert.Equal(
 		t,
-		map[station]string{
-			red1:  "ath1",
-			red2:  "ath11",
-			red3:  "ath12",
-			blue1: "ath13",
-			blue2: "ath14",
-			blue3: "ath15",
+		[]string{
+			"ath1",
+			"ath11",
+			"ath12",
+			"ath13",
+			"ath14",
+			"ath15",
+			"ath16",
+			"ath17",
+			"ath18",
 		},
-		radio.stationInterfaces,
+		radio.vlanInterfaces,
 	)
 
 	// Using Linksys radio.
@@ -47,8 +50,8 @@ func TestNewRadio(t *testing.T) {
 	radio = NewRadio()
 	assert.Equal(t, 0, radio.Channel)
 	assert.Equal(t, statusBooting, radio.Status)
-	if assert.Equal(t, int(stationCount), len(radio.StationStatuses)) {
-		for i := 0; i < int(stationCount); i++ {
+	if assert.Equal(t, 6, len(radio.StationStatuses)) {
+		for i := 0; i < 6; i++ {
 			stationStatus, ok := radio.StationStatuses[station(i).String()]
 			assert.True(t, ok)
 			assert.Nil(t, stationStatus)
@@ -59,16 +62,38 @@ func TestNewRadio(t *testing.T) {
 	assert.Equal(t, "radio0", radio.device)
 	assert.Equal(
 		t,
-		map[station]string{
-			red1:  "wlan0",
-			red2:  "wlan0-1",
-			red3:  "wlan0-2",
-			blue1: "wlan0-3",
-			blue2: "wlan0-4",
-			blue3: "wlan0-5",
+		[]string{
+			"wlan0",
+			"wlan0-1",
+			"wlan0-2",
+			"wlan0-3",
+			"wlan0-4",
+			"wlan0-5",
+			"wlan0-6",
+			"wlan0-7",
+			"wlan0-8",
 		},
-		radio.stationInterfaces,
+		radio.vlanInterfaces,
 	)
+}
+
+func TestRadio_getInterfaceForStation(t *testing.T) {
+	radio := NewRadio()
+	assert.Equal(t, "wlan0", radio.getStationInterfaceName(red1))
+	assert.Equal(t, "wlan0-1", radio.getStationInterfaceName(red2))
+	assert.Equal(t, "wlan0-2", radio.getStationInterfaceName(red3))
+	assert.Equal(t, "wlan0-3", radio.getStationInterfaceName(blue1))
+	assert.Equal(t, "wlan0-4", radio.getStationInterfaceName(blue2))
+	assert.Equal(t, "wlan0-5", radio.getStationInterfaceName(blue3))
+
+	radio.RedVlans = Vlans708090
+	radio.BlueVlans = Vlans102030
+	assert.Equal(t, "wlan0-6", radio.getStationInterfaceName(red1))
+	assert.Equal(t, "wlan0-7", radio.getStationInterfaceName(red2))
+	assert.Equal(t, "wlan0-8", radio.getStationInterfaceName(red3))
+	assert.Equal(t, "wlan0", radio.getStationInterfaceName(blue1))
+	assert.Equal(t, "wlan0-1", radio.getStationInterfaceName(blue2))
+	assert.Equal(t, "wlan0-2", radio.getStationInterfaceName(blue3))
 }
 
 func TestRadio_isStarted(t *testing.T) {
@@ -156,7 +181,7 @@ func TestRadio_handleConfigurationRequestVividHosting(t *testing.T) {
 	radio.ConfigurationRequestChannel <- dummyRequest2
 	radio.ConfigurationRequestChannel <- request
 	assert.Nil(t, radio.handleConfigurationRequest(dummyRequest1))
-	assert.Equal(t, 19, fakeTree.setCount)
+	assert.Equal(t, 28, fakeTree.setCount)
 	assert.Equal(t, fakeTree.valuesFromSet["wireless.wifi1.channel"], "5")
 	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[1].ssid"], "1111")
 	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[1].key"], "11111111")
@@ -176,7 +201,17 @@ func TestRadio_handleConfigurationRequestVividHosting(t *testing.T) {
 	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[6].ssid"], "6666")
 	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[6].key"], "66666666")
 	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[6].sae_password"], "66666666")
-	assert.Equal(t, 6, fakeTree.commitCount)
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[7].ssid"], "no-team-7")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[7].key"], "no-team-7")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[7].sae_password"], "no-team-7")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[8].ssid"], "no-team-8")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[8].key"], "no-team-8")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[8].sae_password"], "no-team-8")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[9].ssid"], "no-team-9")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[9].key"], "no-team-9")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[9].sae_password"], "no-team-9")
+	assert.Equal(t, 9, fakeTree.commitCount)
+	assert.Equal(t, 8, len(fakeShell.commandsRun))
 	assert.Contains(t, fakeShell.commandsRun, "wifi reload wifi1")
 	assert.Contains(t, fakeShell.commandsRun, "iwinfo ath1 info")
 	assert.Contains(t, fakeShell.commandsRun, "iwinfo ath11 info")
@@ -233,7 +268,7 @@ func TestRadio_handleConfigurationRequestLinksys(t *testing.T) {
 		// Allow some time for the first config-clearing change to be processed.
 		time.Sleep(150 * time.Millisecond)
 
-		assert.Equal(t, 13, fakeTree.setCount)
+		assert.Equal(t, 19, fakeTree.setCount)
 		assert.Equal(t, fakeTree.valuesFromSet["wireless.radio0.channel"], "5")
 		assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[1].ssid"], "no-team-1")
 		assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[1].key"], "no-team-1")
@@ -247,7 +282,14 @@ func TestRadio_handleConfigurationRequestLinksys(t *testing.T) {
 		assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[5].key"], "no-team-5")
 		assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[6].ssid"], "no-team-6")
 		assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[6].key"], "no-team-6")
-		assert.Equal(t, 6, fakeTree.commitCount)
+		assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[7].ssid"], "no-team-7")
+		assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[7].key"], "no-team-7")
+		assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[8].ssid"], "no-team-8")
+		assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[8].key"], "no-team-8")
+		assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[9].ssid"], "no-team-9")
+		assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[9].key"], "no-team-9")
+		assert.Equal(t, 9, fakeTree.commitCount)
+		assert.Equal(t, 8, len(fakeShell.commandsRun))
 		assert.Contains(t, fakeShell.commandsRun, "wifi reload radio0")
 		assert.Contains(t, fakeShell.commandsRun, "iwinfo wlan0 info")
 		assert.Contains(t, fakeShell.commandsRun, "iwinfo wlan0-1 info")
@@ -268,7 +310,7 @@ func TestRadio_handleConfigurationRequestLinksys(t *testing.T) {
 		fakeShell.commandOutput["iwinfo wlan0-5 info"] = "wlan0-5\nESSID: \"no-team-6\"\n"
 	}()
 	assert.Nil(t, radio.handleConfigurationRequest(dummyRequest1))
-	assert.Equal(t, 12, fakeTree.setCount)
+	assert.Equal(t, 18, fakeTree.setCount)
 	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[1].ssid"], "no-team-1")
 	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[1].key"], "no-team-1")
 	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[2].ssid"], "2222")
@@ -281,7 +323,14 @@ func TestRadio_handleConfigurationRequestLinksys(t *testing.T) {
 	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[5].key"], "55555555")
 	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[6].ssid"], "no-team-6")
 	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[6].key"], "no-team-6")
-	assert.Equal(t, 6, fakeTree.commitCount)
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[7].ssid"], "no-team-7")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[7].key"], "no-team-7")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[8].ssid"], "no-team-8")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[8].key"], "no-team-8")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[9].ssid"], "no-team-9")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[9].key"], "no-team-9")
+	assert.Equal(t, 9, fakeTree.commitCount)
+	assert.Equal(t, 7, len(fakeShell.commandsRun))
 	assert.Contains(t, fakeShell.commandsRun, "wifi reload radio0")
 	assert.Contains(t, fakeShell.commandsRun, "iwinfo wlan0 info")
 	assert.Contains(t, fakeShell.commandsRun, "iwinfo wlan0-1 info")
@@ -289,6 +338,80 @@ func TestRadio_handleConfigurationRequestLinksys(t *testing.T) {
 	assert.Contains(t, fakeShell.commandsRun, "iwinfo wlan0-3 info")
 	assert.Contains(t, fakeShell.commandsRun, "iwinfo wlan0-4 info")
 	assert.Contains(t, fakeShell.commandsRun, "iwinfo wlan0-5 info")
+}
+
+func TestRadio_handleConfigurationRequestSpareVlans(t *testing.T) {
+	fakeTree := newFakeUciTree()
+	uciTree = fakeTree
+	fakeTree.valuesForGet["system.@system[0].model"] = "VH-109(AP)"
+	fakeShell := newFakeShell(t)
+	shell = fakeShell
+	wifiReloadBackoffDuration = 10 * time.Millisecond
+	fakeShell.commandOutput["cat /etc/vh_firmware"] = ""
+	radio := NewRadio()
+
+	fakeShell.commandOutput["wifi reload wifi1"] = ""
+	fakeShell.commandOutput["iwinfo ath16 info"] = "ath1\nESSID: \"1111\"\n"
+	fakeShell.commandOutput["iwinfo ath17 info"] = "ath11\nESSID: \"no-team-2\"\n"
+	fakeShell.commandOutput["iwinfo ath18 info"] = "ath12\nESSID: \"3333\"\n"
+	fakeShell.commandOutput["iwinfo ath1 info"] = "ath13\nESSID: \"no-team-4\"\n"
+	fakeShell.commandOutput["iwinfo ath11 info"] = "ath14\nESSID: \"5555\"\n"
+	fakeShell.commandOutput["iwinfo ath12 info"] = "ath15\nESSID: \"6666\"\n"
+	request := ConfigurationRequest{
+		RedVlans:  Vlans708090,
+		BlueVlans: Vlans102030,
+		StationConfigurations: map[string]StationConfiguration{
+			"red1":  {Ssid: "1111", WpaKey: "11111111"},
+			"red3":  {Ssid: "3333", WpaKey: "33333333"},
+			"blue2": {Ssid: "5555", WpaKey: "55555555"},
+			"blue3": {Ssid: "6666", WpaKey: "66666666"},
+		},
+	}
+	assert.Nil(t, radio.handleConfigurationRequest(request))
+	assert.Equal(t, 27, fakeTree.setCount)
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[1].ssid"], "no-team-1")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[1].key"], "no-team-1")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[1].sae_password"], "no-team-1")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[2].ssid"], "5555")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[2].key"], "55555555")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[2].sae_password"], "55555555")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[3].ssid"], "6666")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[3].key"], "66666666")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[3].sae_password"], "66666666")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[4].ssid"], "no-team-4")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[4].key"], "no-team-4")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[4].sae_password"], "no-team-4")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[5].ssid"], "no-team-5")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[5].key"], "no-team-5")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[5].sae_password"], "no-team-5")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[6].ssid"], "no-team-6")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[6].key"], "no-team-6")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[6].sae_password"], "no-team-6")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[7].ssid"], "1111")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[7].key"], "11111111")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[7].sae_password"], "11111111")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[8].ssid"], "no-team-8")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[8].key"], "no-team-8")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[8].sae_password"], "no-team-8")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[9].ssid"], "3333")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[9].key"], "33333333")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[9].sae_password"], "33333333")
+	assert.Equal(t, 9, fakeTree.commitCount)
+	assert.Equal(t, 8, len(fakeShell.commandsRun))
+	assert.Contains(t, fakeShell.commandsRun, "wifi reload wifi1")
+	assert.Contains(t, fakeShell.commandsRun, "iwinfo ath16 info")
+	assert.Contains(t, fakeShell.commandsRun, "iwinfo ath17 info")
+	assert.Contains(t, fakeShell.commandsRun, "iwinfo ath18 info")
+	assert.Contains(t, fakeShell.commandsRun, "iwinfo ath1 info")
+	assert.Contains(t, fakeShell.commandsRun, "iwinfo ath11 info")
+	assert.Contains(t, fakeShell.commandsRun, "iwinfo ath12 info")
+
+	assert.Equal(t, "1111", radio.StationStatuses["red1"].Ssid)
+	assert.Nil(t, radio.StationStatuses["red2"])
+	assert.Equal(t, "3333", radio.StationStatuses["red3"].Ssid)
+	assert.Nil(t, radio.StationStatuses["blue1"])
+	assert.Equal(t, "5555", radio.StationStatuses["blue2"].Ssid)
+	assert.Equal(t, "6666", radio.StationStatuses["blue3"].Ssid)
 }
 
 func TestRadio_handleConfigurationRequestErrors(t *testing.T) {
