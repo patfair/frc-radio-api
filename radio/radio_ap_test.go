@@ -127,6 +127,7 @@ func TestRadio_setInitialState(t *testing.T) {
 
 	fakeTree.valuesForGet["wireless.wifi1.channel"] = "23"
 	fakeTree.valuesForGet["wireless.wifi1.htmode"] = "HT20"
+	fakeTree.valuesForGet["system.@system[0].log_ip"] = "10.20.30.40"
 	fakeShell.commandOutput["iwinfo ath1 info"] = "ath1\nESSID: \"1111\"\n"
 	fakeShell.commandOutput["iwinfo ath11 info"] = "ath11\nESSID: \"no-team-2\"\n"
 	fakeShell.commandOutput["iwinfo ath12 info"] = "ath12\nESSID: \"no-team-3\"\n"
@@ -142,6 +143,7 @@ func TestRadio_setInitialState(t *testing.T) {
 	assert.Nil(t, radio.StationStatuses["blue1"])
 	assert.Nil(t, radio.StationStatuses["blue2"])
 	assert.Equal(t, "6666", radio.StationStatuses["blue3"].Ssid)
+	assert.Equal(t, "10.20.30.40", radio.SyslogIpAddress)
 }
 
 func TestRadio_handleConfigurationRequestVividHosting(t *testing.T) {
@@ -154,6 +156,7 @@ func TestRadio_handleConfigurationRequestVividHosting(t *testing.T) {
 	fakeShell.commandOutput["cat /etc/vh_firmware"] = ""
 	radio := NewRadio()
 
+	fakeShell.commandOutput["/etc/init.d/log restart"] = ""
 	fakeShell.commandOutput["wifi reload wifi1"] = ""
 	fakeShell.commandOutput["iwinfo ath1 info"] = "ath1\nESSID: \"1111\"\n"
 	fakeShell.commandOutput["iwinfo ath11 info"] = "ath11\nESSID: \"no-team-2\"\n"
@@ -177,12 +180,14 @@ func TestRadio_handleConfigurationRequestVividHosting(t *testing.T) {
 			"blue2": {Ssid: "5555", WpaKey: "55555555"},
 			"blue3": {Ssid: "6666", WpaKey: "66666666"},
 		},
+		SyslogIpAddress: "12.34.56.78",
 	}
 	radio.ConfigurationRequestChannel <- dummyRequest2
 	radio.ConfigurationRequestChannel <- request
 	assert.Nil(t, radio.handleConfigurationRequest(dummyRequest1))
-	assert.Equal(t, 28, fakeTree.setCount)
+	assert.Equal(t, 29, fakeTree.setCount)
 	assert.Equal(t, fakeTree.valuesFromSet["wireless.wifi1.channel"], "5")
+	assert.Equal(t, fakeTree.valuesFromSet["system.@system[0].log_ip"], "12.34.56.78")
 	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[1].ssid"], "1111")
 	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[1].key"], "11111111")
 	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[1].sae_password"], "11111111")
@@ -210,8 +215,9 @@ func TestRadio_handleConfigurationRequestVividHosting(t *testing.T) {
 	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[9].ssid"], "no-team-9")
 	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[9].key"], "no-team-9")
 	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[9].sae_password"], "no-team-9")
-	assert.Equal(t, 9, fakeTree.commitCount)
-	assert.Equal(t, 8, len(fakeShell.commandsRun))
+	assert.Equal(t, 10, fakeTree.commitCount)
+	assert.Equal(t, 9, len(fakeShell.commandsRun))
+	assert.Contains(t, fakeShell.commandsRun, "/etc/init.d/log restart")
 	assert.Contains(t, fakeShell.commandsRun, "wifi reload wifi1")
 	assert.Contains(t, fakeShell.commandsRun, "iwinfo ath1 info")
 	assert.Contains(t, fakeShell.commandsRun, "iwinfo ath11 info")
@@ -220,6 +226,7 @@ func TestRadio_handleConfigurationRequestVividHosting(t *testing.T) {
 	assert.Contains(t, fakeShell.commandsRun, "iwinfo ath14 info")
 	assert.Contains(t, fakeShell.commandsRun, "iwinfo ath15 info")
 
+	assert.Equal(t, "12.34.56.78", radio.SyslogIpAddress)
 	assert.Equal(t, "1111", radio.StationStatuses["red1"].Ssid)
 	assert.Nil(t, radio.StationStatuses["red2"])
 	assert.Equal(t, "3333", radio.StationStatuses["red3"].Ssid)

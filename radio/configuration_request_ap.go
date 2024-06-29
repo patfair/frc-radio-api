@@ -6,6 +6,7 @@ package radio
 import (
 	"errors"
 	"fmt"
+	"regexp"
 )
 
 // ConfigurationRequest represents a JSON request to configure the radio.
@@ -26,6 +27,9 @@ type ConfigurationRequest struct {
 	// SSID and WPA key for each team station, keyed by alliance and number (e.g. "red1", "blue3). If a station is not
 	// included, its network will be disabled by setting its SSID to a placeholder.
 	StationConfigurations map[string]StationConfiguration `json:"stationConfigurations"`
+
+	// IP address of the syslog server to send logs to (via UDP on port 514).
+	SyslogIpAddress string `json:"syslogIpAddress"`
 }
 
 // StationConfiguration represents the configuration for a single team station.
@@ -42,7 +46,7 @@ var validLinksysChannels = []int{36, 40, 44, 48, 149, 153, 157, 161, 165}
 // Validate checks that all parameters within the configuration request have valid values.
 func (request ConfigurationRequest) Validate(radio *Radio) error {
 	if request.Channel == 0 && request.ChannelBandwidth == "" && len(request.StationConfigurations) == 0 &&
-		request.RedVlans == "" && request.BlueVlans == "" {
+		request.RedVlans == "" && request.BlueVlans == "" && request.SyslogIpAddress == "" {
 		return errors.New("empty configuration request")
 	}
 
@@ -114,6 +118,14 @@ func (request ConfigurationRequest) Validate(radio *Radio) error {
 				minWpaKeyLength,
 				maxWpaKeyLength,
 			)
+		}
+	}
+
+	// Validate syslog IP address.
+	if request.SyslogIpAddress != "" {
+		match, _ := regexp.MatchString("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$", request.SyslogIpAddress)
+		if !match {
+			return fmt.Errorf("invalid syslog IP address: %s", request.SyslogIpAddress)
 		}
 	}
 

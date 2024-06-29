@@ -32,6 +32,9 @@ type Radio struct {
 	// Map of team station names to their current status.
 	StationStatuses map[string]*NetworkStatus `json:"stationStatuses"`
 
+	// IP address of the syslog server to send logs to (via UDP on port 514).
+	SyslogIpAddress string `json:"syslogIpAddress"`
+
 	// Version of the radio software.
 	Version string `json:"version"`
 
@@ -182,6 +185,8 @@ func (radio *Radio) setInitialState() {
 		radio.ChannelBandwidth = "INVALID"
 	}
 	_ = radio.updateStationStatuses()
+
+	radio.SyslogIpAddress, _ = uciTree.GetLast("system", "@system[0]", "log_ip")
 }
 
 // configure configures the radio with the given configuration.
@@ -212,6 +217,16 @@ func (radio *Radio) configure(request ConfigurationRequest) error {
 			radio.spareVlans = Vlans405060
 		} else {
 			radio.spareVlans = Vlans102030
+		}
+	}
+	if request.SyslogIpAddress != "" {
+		uciTree.SetType("system", "@system[0]", "log_ip", uci.TypeOption, request.SyslogIpAddress)
+		if err := uciTree.Commit(); err != nil {
+			return fmt.Errorf("failed to commit system configuration: %v", err)
+		}
+		radio.SyslogIpAddress = request.SyslogIpAddress
+		if _, err := shell.runCommand("/etc/init.d/log", "restart"); err != nil {
+			return fmt.Errorf("failed to restart syslog service: %v", err)
 		}
 	}
 
