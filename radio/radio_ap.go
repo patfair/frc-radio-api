@@ -47,11 +47,8 @@ type Radio struct {
 	// Name of the radio's Wi-Fi device, dependent on the hardware type.
 	device string
 
-	// Extra set of VLANs that are not used for team networks. Valid values are "10_20_30", "40_50_60", and "70_80_90".
-	spareVlans AllianceVlans
-
-	// List of Wi-Fi interface names in order of their corresponding VLAN, dependent on the hardware type.
-	vlanInterfaces []string
+	// Map of team station names to their Wi-Fi interface names, dependent on the hardware type.
+	stationInterfaces map[station]string
 }
 
 // AllianceVlans represents which three VLANs are used for the teams of an alliance.
@@ -68,7 +65,6 @@ func NewRadio() *Radio {
 	radio := Radio{
 		RedVlans:                    Vlans102030,
 		BlueVlans:                   Vlans405060,
-		spareVlans:                  Vlans708090,
 		Status:                      statusBooting,
 		ConfigurationRequestChannel: make(chan ConfigurationRequest, configurationRequestBufferSize),
 	}
@@ -83,29 +79,23 @@ func NewRadio() *Radio {
 	switch radio.Type {
 	case TypeLinksys:
 		radio.device = "radio0"
-		radio.vlanInterfaces = []string{
-			"wlan0",
-			"wlan0-1",
-			"wlan0-2",
-			"wlan0-3",
-			"wlan0-4",
-			"wlan0-5",
-			"wlan0-6",
-			"wlan0-7",
-			"wlan0-8",
+		radio.stationInterfaces = map[station]string{
+			red1:  "wlan0",
+			red2:  "wlan0-1",
+			red3:  "wlan0-2",
+			blue1: "wlan0-3",
+			blue2: "wlan0-4",
+			blue3: "wlan0-5",
 		}
 	case TypeVividHosting:
 		radio.device = "wifi1"
-		radio.vlanInterfaces = []string{
-			"ath1",
-			"ath11",
-			"ath12",
-			"ath13",
-			"ath14",
-			"ath15",
-			"ath16",
-			"ath17",
-			"ath18",
+		radio.stationInterfaces = map[station]string{
+			red1:  "ath1",
+			red2:  "ath11",
+			red3:  "ath12",
+			blue1: "ath13",
+			blue2: "ath14",
+			blue3: "ath15",
 		}
 	}
 
@@ -117,42 +107,29 @@ func NewRadio() *Radio {
 	return &radio
 }
 
-// getStationInterfaceIndex returns the Wi-Fi interface index for the given team station.
-func (radio *Radio) getStationInterfaceIndex(station station) int {
+// getStationVlan returns the VLAN number for the given team station.
+func (radio *Radio) getStationVlan(station station) int {
 	var vlans AllianceVlans
-	var offset int
+	var position int
 	if station == red1 || station == red2 || station == red3 {
 		vlans = radio.RedVlans
-		offset = int(station) - int(red1)
+		position = int(station) - int(red1) + 1
 	} else if station == blue1 || station == blue2 || station == blue3 {
 		vlans = radio.BlueVlans
-		offset = int(station) - int(blue1)
-	} else if station == spare1 || station == spare2 || station == spare3 {
-		vlans = radio.spareVlans
-		offset = int(station) - int(spare1)
+		position = int(station) - int(blue1) + 1
 	}
 
 	switch vlans {
 	case Vlans102030:
-		return offset
+		return 10 * position
 	case Vlans405060:
-		return 3 + offset
+		return 10 * (position + 3)
 	case Vlans708090:
-		return 6 + offset
+		return 10 * (position + 6)
 	default:
 		// Invalid station.
 		return -1
 	}
-}
-
-// getStationInterfaceName returns the Wi-Fi interface name for the given team station.
-func (radio *Radio) getStationInterfaceName(station station) string {
-	index := radio.getStationInterfaceIndex(station)
-	if index == -1 {
-		// Invalid station.
-		return ""
-	}
-	return radio.vlanInterfaces[index]
 }
 
 // determineAndSetType determines the model of the radio.
@@ -167,7 +144,7 @@ func (radio *Radio) determineAndSetType() {
 
 // isStarted returns true if the Wi-Fi interface is up and running.
 func (radio *Radio) isStarted() bool {
-	_, err := shell.runCommand("iwinfo", radio.getStationInterfaceName(blue3), "info")
+	_, err := shell.runCommand("iwinfo", radio.stationInterfaces[blue3], "info")
 	return err == nil
 }
 
@@ -211,13 +188,6 @@ func (radio *Radio) configure(request ConfigurationRequest) error {
 	if request.RedVlans != "" && request.BlueVlans != "" {
 		radio.RedVlans = request.RedVlans
 		radio.BlueVlans = request.BlueVlans
-		if radio.RedVlans != Vlans708090 && radio.BlueVlans != Vlans708090 {
-			radio.spareVlans = Vlans708090
-		} else if radio.RedVlans != Vlans405060 && radio.BlueVlans != Vlans405060 {
-			radio.spareVlans = Vlans405060
-		} else {
-			radio.spareVlans = Vlans102030
-		}
 	}
 	if request.SyslogIpAddress != "" {
 		uciTree.SetType("system", "@system[0]", "log_ip", uci.TypeOption, request.SyslogIpAddress)
@@ -245,8 +215,8 @@ func (radio *Radio) configureStations(stationConfigurations map[string]StationCo
 	retryCount := 1
 
 	for {
-		for station := red1; station <= spare3; station++ {
-			position := radio.getStationInterfaceIndex(station) + 1
+		for station := red1; station <= blue3; station++ {
+			position := int(station) + 1
 			var ssid, wpaKey string
 			if config, ok := stationConfigurations[station.String()]; ok {
 				ssid = config.Ssid
@@ -262,6 +232,8 @@ func (radio *Radio) configureStations(stationConfigurations map[string]StationCo
 			if radio.Type == TypeVividHosting {
 				uciTree.SetType("wireless", wifiInterface, "sae_password", uci.TypeOption, wpaKey)
 			}
+			vlan := fmt.Sprintf("vlan%d", radio.getStationVlan(station))
+			uciTree.SetType("wireless", wifiInterface, "network", uci.TypeOption, vlan)
 
 			if err := uciTree.Commit(); err != nil {
 				return fmt.Errorf("failed to commit wireless configuration: %v", err)
@@ -293,7 +265,7 @@ func (radio *Radio) configureStations(stationConfigurations map[string]StationCo
 // in-memory state.
 func (radio *Radio) updateStationStatuses() error {
 	for station := red1; station <= blue3; station++ {
-		ssid, err := getSsid(radio.getStationInterfaceName(station))
+		ssid, err := getSsid(radio.stationInterfaces[station])
 		if err != nil {
 			return err
 		}
@@ -339,6 +311,6 @@ func (radio *Radio) updateMonitoring() {
 			continue
 		}
 
-		stationStatus.updateMonitoring(radio.getStationInterfaceName(station))
+		stationStatus.updateMonitoring(radio.stationInterfaces[station])
 	}
 }

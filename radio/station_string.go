@@ -14,14 +14,11 @@ func _() {
 	_ = x[blue1-3]
 	_ = x[blue2-4]
 	_ = x[blue3-5]
-	_ = x[spare1-6]
-	_ = x[spare2-7]
-	_ = x[spare3-8]
 }
 
-const _station_name = "red1red2red3blue1blue2blue3spare1spare2spare3"
+const _station_name = "red1red2red3blue1blue2blue3"
 
-var _station_index = [...]uint8{0, 4, 8, 12, 17, 22, 27, 33, 39, 45}
+var _station_index = [...]uint8{0, 4, 8, 12, 17, 22, 27}
 
 func (i station) String() string {
 	if i < 0 || i >= station(len(_station_index)-1) {
