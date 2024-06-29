@@ -12,7 +12,4 @@ const (
 	blue1
 	blue2
 	blue3
-	spare1
-	spare2
-	spare3
 )
