@@ -95,6 +95,7 @@ $ curl http://10.0.100.2:8081/status
     "red2": null,
     "red3": null
   },
+  "syslogIpAddress": "10.0.100.5",
   "version": "1.2.3"
 }
 ```
@@ -115,7 +116,8 @@ $ curl http://10.0.100.2:8081/configuration -XPOST -d '{
   "stationConfigurations": {
     "red1": {"ssid": "1111", "wpaKey": "11111111"},
     "blue2": {"ssid": "5555", "wpaKey": "55555555"}
-  }
+  },
+  "syslogIpAddress": "10.0.100.40"
 }'
 New configuration received and will be applied asynchronously.
 ```
@@ -136,7 +138,8 @@ $ curl http://10.0.100.2:8081/status
     "red1": null,
     "red2": null,
     "red3": null
-  }
+  },
+  "syslogIpAddress": "10.0.100.40"
 }
 ```
 
