@@ -95,4 +95,9 @@ func TestConfigurationRequest_Validate(t *testing.T) {
 	}
 	err = request.Validate(linksysRadio)
 	assert.EqualError(t, err, "invalid WPA key for station blue1 (expecting alphanumeric)")
+
+	// Invalid syslog IP address.
+	request = ConfigurationRequest{SyslogIpAddress: "10.0.100.256"}
+	err = request.Validate(linksysRadio)
+	assert.EqualError(t, err, "invalid syslog IP address: 10.0.100.256")
 }
