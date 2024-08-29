@@ -20,7 +20,11 @@ const (
 )
 
 func main() {
-	setupLogging()
+	logFile := setupLogging()
+	log.Println("Starting FRC Radio API...")
+	if logFile != nil {
+		defer logFile.Close()
+	}
 
 	radio := radio.NewRadio()
 	fmt.Println("created radio")
@@ -35,7 +39,7 @@ func main() {
 }
 
 // setupLogging sets up logging to a file, or to stdout if the file can't be opened.
-func setupLogging() {
+func setupLogging() *os.File {
 	// Rotate the log file if the current one is too big.
 	if fileInfo, err := os.Stat(logFilePath); err == nil {
 		if fileInfo.Size() >= logFileMaxSizeBytes {
@@ -47,10 +51,10 @@ func setupLogging() {
 
 	logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
 	if err == nil {
-		defer logFile.Close()
 		log.SetOutput(logFile)
+		return logFile
 	} else {
 		log.Printf("error opening log file; logging to stdout instead: %v", err)
+		return nil
 	}
-	log.Println("Starting FRC Radio API...")
 }
