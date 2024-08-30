@@ -62,6 +62,7 @@ func TestRadio_setInitialState(t *testing.T) {
 	)
 	assert.Equal(t, "HomcjcEQvymkzADm", radio.NetworkStatus6.WpaKeySalt)
 	assert.Equal(t, 12345, radio.TeamNumber)
+	assert.Equal(t, "", radio.SsidSuffix)
 
 	// Test with team radio mode.
 	fakeTree.valuesForGet["wireless.@wifi-iface[1].mode"] = "sta"
@@ -82,6 +83,13 @@ func TestRadio_setInitialState(t *testing.T) {
 	radio.setInitialState()
 	assert.Equal(t, modeTeamAccessPoint, radio.Mode)
 	assert.Equal(t, "auto", radio.Channel)
+
+	// Test with SSID suffix.
+	fakeTree.valuesForGet["wireless.@wifi-iface[0].ssid"] = "FRC-12345-suffix"
+	fakeTree.valuesForGet["wireless.@wifi-iface[1].ssid"] = "12345-suffix"
+	radio.setInitialState()
+	assert.Equal(t, 12345, radio.TeamNumber)
+	assert.Equal(t, "suffix", radio.SsidSuffix)
 }
 
 func TestRadio_handleConfigurationRequest(t *testing.T) {
@@ -190,6 +198,23 @@ func TestRadio_handleConfigurationRequest(t *testing.T) {
 	assert.Equal(t, fakeTree.valuesFromSet["wireless.wifi1.channel"], "***DELETED***")
 	assert.Equal(t, modeTeamRobotRadio, radio.Mode)
 	assert.Equal(t, "", radio.Channel)
+
+	// Configure to team radio mode with SSID suffix.
+	fakeShell.commandOutput["iwinfo ath1 info"] = "ath0\nESSID: \"12345-suffix\"\n"
+	request = ConfigurationRequest{Mode: modeTeamRobotRadio, TeamNumber: 12345, SsidSuffix: "suffix", WpaKey6: "11111111", WpaKey24: "22222222"}
+	assert.Nil(t, radio.handleConfigurationRequest(request))
+	assert.Equal(t, modeTeamRobotRadio, radio.Mode)
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[0].ssid"], "FRC-12345-suffix")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[1].ssid"], "12345-suffix")
+	assert.Equal(t, "", radio.Channel)
+
+	// Configure to team access point mode with SSID Suffix.
+	request = ConfigurationRequest{Mode: modeTeamAccessPoint, TeamNumber: 12345, SsidSuffix: "suffix", WpaKey6: "11111111"}
+	assert.Nil(t, radio.handleConfigurationRequest(request))
+	assert.Equal(t, modeTeamAccessPoint, radio.Mode)
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[0].ssid"], "FRC-12345-suffix")
+	assert.Equal(t, fakeTree.valuesFromSet["wireless.@wifi-iface[1].ssid"], "12345-suffix")
+	assert.Equal(t, "auto", radio.Channel)
 }
 
 func TestRadio_handleConfigurationRequestErrors(t *testing.T) {

@@ -42,8 +42,24 @@ func TestConfigurationRequest_Validate(t *testing.T) {
 	err = request.Validate(radio)
 	assert.EqualError(t, err, "invalid team number: 25500")
 
-	// Too-short 6GHz WPA key.
+	// Valid SSID suffix.
 	request.TeamNumber = 254
+	request.SsidSuffix = "Abc123"
+	err = request.Validate(radio)
+	assert.Nil(t, err)
+
+	// Too-long SSID suffix.
+	request.SsidSuffix = "123456789"
+	err = request.Validate(radio)
+	assert.EqualError(t, err, "invalid ssidSuffix length: 9 (expecting 0-8)")
+
+	// Invalid SSID suffix.
+	request.SsidSuffix = "123/abc_"
+	err = request.Validate(radio)
+	assert.EqualError(t, err, "invalid ssidSuffix: 123/abc_ (expecting alphanumeric)")
+
+	// Too-short 6GHz WPA key.
+	request.SsidSuffix = ""
 	request.WpaKey6 = "1234567"
 	err = request.Validate(radio)
 	assert.EqualError(t, err, "invalid wpaKey6 length: 7 (expecting 8-16)")
