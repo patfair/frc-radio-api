@@ -5,6 +5,15 @@ package radio
 
 import (
 	"fmt"
+	"regexp"
+)
+
+const (
+	// Maximum length for the SSID suffix.
+	maxSsidSuffixLength = 8
+
+	// Regex to validate the SSID suffix.
+	ssidSuffixRegex = "^[a-zA-Z0-9]*$"
 )
 
 // ConfigurationRequest represents a JSON request to configure the radio.
@@ -18,6 +27,9 @@ type ConfigurationRequest struct {
 
 	// Team number to configure the radio for. Must be between 1 and 25499.
 	TeamNumber int `json:"teamNumber"`
+
+	// Suffix to be appended to all WPA SSIDs. Must be alphanumeric and less than eight charaters long.
+	SsidSuffix string `json:"ssidSuffix"`
 
 	// Team-specific WPA key for the 6GHz network used by the FMS. Must be at least eight characters long.
 	WpaKey6 string `json:"wpaKey6"`
@@ -41,6 +53,13 @@ func (request ConfigurationRequest) Validate(radio *Radio) error {
 
 	if request.TeamNumber < 1 || request.TeamNumber > 25499 {
 		return fmt.Errorf("invalid team number: %d", request.TeamNumber)
+	}
+
+	if len(request.SsidSuffix) > maxSsidSuffixLength {
+		return fmt.Errorf("invalid ssidSuffix length: %d (expecting 0-%d)", len(request.SsidSuffix), maxSsidSuffixLength)
+	}
+	if !regexp.MustCompile(ssidSuffixRegex).MatchString(request.SsidSuffix) {
+		return fmt.Errorf("invalid ssidSuffix: %s (expecting alphanumeric)", request.SsidSuffix)
 	}
 
 	if len(request.WpaKey6) < minWpaKeyLength || len(request.WpaKey6) > maxWpaKeyLength {
