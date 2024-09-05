@@ -72,6 +72,9 @@ type NetworkStatus struct {
 
 	// Human-readable string describing connection quality to the remote device. Based on RX rate. Blank if not associated.
 	ConnectionQuality string `json:"connectionQuality"`
+
+	// Flag representing whether the interface is for a robot.
+	IsRobot bool `json:"-"`
 }
 
 // updateMonitoring polls the access point for the current bandwidth usage and link state of the given network interface
@@ -157,12 +160,17 @@ func (status *NetworkStatus) parseAssocList(response string) {
 			if len(line2Match) > 0 {
 				status.RxRateMbps, _ = strconv.ParseFloat(line2Match[1], 64)
 				status.RxPackets, _ = strconv.Atoi(line2Match[2])
-				status.determineConnectionQuality()
+				if !status.IsRobot {
+					status.determineConnectionQuality(status.RxRateMbps)
+				}
 			}
 			line3Match := line3R3.FindStringSubmatch(response)
 			if len(line3Match) > 0 {
 				status.TxRateMbps, _ = strconv.ParseFloat(line3Match[1], 64)
 				status.TxPackets, _ = strconv.Atoi(line3Match[2])
+				if status.IsRobot {
+					status.determineConnectionQuality(status.TxRateMbps)
+				}
 			}
 			break
 		}
@@ -185,12 +193,12 @@ func (status *NetworkStatus) parseIfconfig(response string) {
 
 // determineConnectionQuality uses the stored RxRateMbps value to determine a connection quality string and updates the
 // status structure with the result.
-func (status *NetworkStatus) determineConnectionQuality() {
-	if status.RxRateMbps >= connectionQualityExcellentMinimum {
+func (status *NetworkStatus) determineConnectionQuality(rate float64) {
+	if rate >= connectionQualityExcellentMinimum {
 		status.ConnectionQuality = "excellent"
-	} else if status.RxRateMbps >= connectionQualityGoodMinimum {
+	} else if rate >= connectionQualityGoodMinimum {
 		status.ConnectionQuality = "good"
-	} else if status.RxRateMbps >= connectionQualityCautionMinimum {
+	} else if rate >= connectionQualityCautionMinimum {
 		status.ConnectionQuality = "caution"
 	} else {
 		status.ConnectionQuality = "warning"

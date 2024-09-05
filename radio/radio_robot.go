@@ -102,6 +102,8 @@ func (radio *Radio) setInitialState() {
 	if mode == "sta" {
 		radio.Mode = modeTeamRobotRadio
 		radio.Channel = ""
+		radio.NetworkStatus24.IsRobot = true
+		radio.NetworkStatus6.IsRobot = true
 	} else {
 		radio.Mode = modeTeamAccessPoint
 		radio.Channel, _ = uciTree.GetLast("wireless", radioDevice6, "channel")
@@ -156,6 +158,10 @@ func (radio *Radio) configure(request ConfigurationRequest) error {
 			uciTree.SetType("network", "lan", "gateway", uci.TypeOption, fmt.Sprintf("10.%s.4", teamPartialIp))
 			uciTree.SetType("dhcp", "lan", "start", uci.TypeOption, "200")
 			uciTree.SetType("dhcp", "lan", "limit", uci.TypeOption, "20")
+
+			// Handle NetworkStatus as robot.
+			radio.NetworkStatus24.IsRobot = true
+			radio.NetworkStatus6.IsRobot = true
 		} else {
 			uciTree.SetType("wireless", wifiInterface6, "mode", uci.TypeOption, "ap")
 
@@ -173,6 +179,10 @@ func (radio *Radio) configure(request ConfigurationRequest) error {
 			uciTree.SetType("network", "lan", "gateway", uci.TypeOption, fmt.Sprintf("10.%s.4", teamPartialIp))
 			uciTree.SetType("dhcp", "lan", "start", uci.TypeOption, "20")
 			uciTree.SetType("dhcp", "lan", "limit", uci.TypeOption, "180")
+
+			// Handle NetworkStatus as AP
+			radio.NetworkStatus24.IsRobot = false
+			radio.NetworkStatus24.IsRobot = false
 		}
 
 		// Handle DHCP.

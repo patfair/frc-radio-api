@@ -68,6 +68,10 @@ func TestNetworkStatus_ParseAssocList(t *testing.T) {
 		},
 		status,
 	)
+	status.IsRobot = true
+	status.parseAssocList(response)
+	assert.Equal(t, "caution", status.ConnectionQuality)
+	status.IsRobot = false
 	response = "37:DA:35:B0:00:BE  -64 dBm / -84 dBm (SNR 7)  4000 ms ago\n" +
 		"\tRX: 123.4 MBit/s                                5091 Pkts.\n" +
 		"\tTX: 550.6 MBit/s                                 789 Pkts.\n" +
@@ -121,20 +125,16 @@ func TestNetworkStatus_DetermineConnectionQuality(t *testing.T) {
 
 	assert.Equal(t, NetworkStatus{}, status)
 
-	status.RxRateMbps = connectionQualityExcellentMinimum
-	status.determineConnectionQuality()
+	status.determineConnectionQuality(connectionQualityExcellentMinimum)
 	assert.Equal(t, "excellent", status.ConnectionQuality)
 
-	status.RxRateMbps = connectionQualityGoodMinimum
-	status.determineConnectionQuality()
+	status.determineConnectionQuality(connectionQualityGoodMinimum)
 	assert.Equal(t, "good", status.ConnectionQuality)
 
-	status.RxRateMbps = connectionQualityCautionMinimum
-	status.determineConnectionQuality()
+	status.determineConnectionQuality(connectionQualityCautionMinimum)
 	assert.Equal(t, "caution", status.ConnectionQuality)
 
-	status.RxRateMbps = 0.1
-	status.determineConnectionQuality()
+	status.determineConnectionQuality(0.1)
 	assert.Equal(t, "warning", status.ConnectionQuality)
 
 	// Ensure ConnectionQuality resets to blank.
