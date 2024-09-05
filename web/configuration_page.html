@@ -156,6 +156,28 @@
 		<div id="configResult" class="alert alert-secondary" role="alert" hidden></div>
 	</div>
 
+	<div id="stats" hidden>
+			<br />
+			<hr />
+			<br />
+
+			<div  class="container">
+				<h1>Connectivity Statistics</h1>
+				<div style="display: grid; grid-template-columns: auto 1fr; gap: 1rem;">
+					<span>Linked</span>
+					<samp id="isLinked"></samp>
+					<span>Linked MAC Address</span>
+					<samp id="macAddress"></samp>
+					<span>Recieve Rate (Mbps)</span>
+					<samp id="rxRateMbps"></samp>
+					<span>Bandwidth Used (Mbps)</span>
+					<samp id="bandwidthUsedMbps"></samp>
+					<span>Connection Quality</span>
+					<samp id="connectionQuality"></samp>
+				</div>
+		</div>
+	</div>
+
 	<br />
 	<hr />
 	<br />
@@ -285,23 +307,39 @@
 			}
 		}
 
-		async function getCurrentConfig() {
+		async function getStatus(setConfig = false) {
 			try {
-				const res = await fetch("/status");
+				const res = await fetch("http://192.168.69.1/status");
 				const json = await res.json();
 
-				const robotMode = document.getElementById("modeRobotRadio");
-				const apMode = document.getElementById("modeAccessPoint");
-				if (json.mode === "TEAM_ROBOT_RADIO") {
-					robotMode.setAttribute("checked", "checked");
-					apMode.removeAttribute("checked");
-				} else if (json.mode === "TEAM_ACCESS_POINT") {
-					robotMode.removeAttribute("checked");
-					apMode.setAttribute("checked", "checked");
+				if (json.mode === "TEAM_ACCESS_POINT") {
+					document.getElementById("stats").removeAttribute("hidden");
+					for (const key of [
+						"isLinked",
+						"macAddress",
+						"rxRateMbps",
+						"bandwidthUsedMbps",
+						"connectionQuality",
+					]) {
+						document.getElementById(key).textContent = json.networkStatus6[key];
+					}
 				}
 
-				document.getElementById("teamNumber").value = json.teamNumber;
-				document.getElementById("channel").value = json.channel;
+				if (setConfig) {
+						const robotMode = document.getElementById("modeRobotRadio");
+						const apMode = document.getElementById("modeAccessPoint");
+						if (json.mode === "TEAM_ROBOT_RADIO") {
+							robotMode.setAttribute("checked", "checked");
+							apMode.removeAttribute("checked");
+							document.getElementById("stats").setAttribute("hidden", "");
+						} else if (json.mode === "TEAM_ACCESS_POINT") {
+							robotMode.removeAttribute("checked");
+							apMode.setAttribute("checked", "checked");
+						}
+
+						document.getElementById("teamNumber").value = json.teamNumber;
+						document.getElementById("channel").value = json.channel;
+				}
 			} catch (e) {
 				console.error(e);
 			}
@@ -325,10 +363,14 @@
 		})
 
 		setLoading("config", true);
-		updateVisibleFields(new FormData(form.config).get("mode"))
-		getCurrentConfig()
+		updateVisibleFields(new FormData(form.config).get("mode"));
+		getStatus(true)
 			.then(() => updateVisibleFields(new FormData(form.config).get("mode")))
 			.then(() => setLoading("config", false));
+
+		setInterval(() => {
+			getStatus();
+		}, 5000);
 	</script>
 </body>
 
