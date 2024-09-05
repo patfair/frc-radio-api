@@ -25,6 +25,7 @@ func TestWeb_statusHandler(t *testing.T) {
 		TxRateMbps:        2.0,
 		SignalNoiseRatio:  3,
 		BandwidthUsedMbps: 4.0,
+		ConnectionQuality: "warning",
 	}
 
 	recorder := web.getHttpResponse("/status")

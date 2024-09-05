@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestNetworkStatus_ParseBandwithUsed(t *testing.T) {
+func TestNetworkStatus_ParseBandwidthUsed(t *testing.T) {
 	var status NetworkStatus
 
 	// Response is too short.
@@ -55,15 +55,16 @@ func TestNetworkStatus_ParseAssocList(t *testing.T) {
 	assert.Equal(
 		t,
 		NetworkStatus{
-			IsLinked:         true,
-			MacAddress:       "48:DA:35:B0:00:CF",
-			SignalDbm:        -53,
-			NoiseDbm:         -95,
-			SignalNoiseRatio: 42,
-			RxRateMbps:       550.6,
-			RxPackets:        4095,
-			TxRateMbps:       254.0,
-			TxPackets:        123,
+			IsLinked:          true,
+			MacAddress:        "48:DA:35:B0:00:CF",
+			SignalDbm:         -53,
+			NoiseDbm:          -95,
+			SignalNoiseRatio:  42,
+			RxRateMbps:        550.6,
+			RxPackets:         4095,
+			TxRateMbps:        254.0,
+			TxPackets:         123,
+			ConnectionQuality: "excellent",
 		},
 		status,
 	)
@@ -75,15 +76,16 @@ func TestNetworkStatus_ParseAssocList(t *testing.T) {
 	assert.Equal(
 		t,
 		NetworkStatus{
-			IsLinked:         true,
-			MacAddress:       "37:DA:35:B0:00:BE",
-			SignalDbm:        -64,
-			NoiseDbm:         -84,
-			SignalNoiseRatio: 7,
-			RxRateMbps:       123.4,
-			RxPackets:        5091,
-			TxRateMbps:       550.6,
-			TxPackets:        789,
+			IsLinked:          true,
+			MacAddress:        "37:DA:35:B0:00:BE",
+			SignalDbm:         -64,
+			NoiseDbm:          -84,
+			SignalNoiseRatio:  7,
+			RxRateMbps:        123.4,
+			RxPackets:         5091,
+			TxRateMbps:        550.6,
+			TxPackets:         789,
+			ConnectionQuality: "warning",
 		},
 		status,
 	)
@@ -112,4 +114,30 @@ func TestNetworkStatus_ParseIfconfig(t *testing.T) {
 		"\tRX bytes:45311 (44.2 KiB)  TX bytes:48699 (47.5 KiB)\n"
 	status.parseIfconfig(response)
 	assert.Equal(t, NetworkStatus{RxBytes: 45311, TxBytes: 48699}, status)
+}
+
+func TestNetworkStatus_DetermineConnectionQuality(t *testing.T) {
+	var status NetworkStatus
+
+	assert.Equal(t, NetworkStatus{}, status)
+
+	status.RxRateMbps = connectionQualityExcellentMinimum
+	status.determineConnectionQuality()
+	assert.Equal(t, "excellent", status.ConnectionQuality)
+
+	status.RxRateMbps = connectionQualityGoodMinimum
+	status.determineConnectionQuality()
+	assert.Equal(t, "good", status.ConnectionQuality)
+
+	status.RxRateMbps = connectionQualityCautionMinimum
+	status.determineConnectionQuality()
+	assert.Equal(t, "caution", status.ConnectionQuality)
+
+	status.RxRateMbps = 0.1
+	status.determineConnectionQuality()
+	assert.Equal(t, "warning", status.ConnectionQuality)
+
+	// Ensure ConnectionQuality resets to blank.
+	status.parseAssocList("")
+	assert.Equal(t, NetworkStatus{}, status)
 }

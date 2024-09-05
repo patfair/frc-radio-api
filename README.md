@@ -72,7 +72,8 @@ $ curl http://10.0.100.2:8081/status
       "txRateMbps": 0,
       "txPackets": 0,
       "txBytes": 0,
-      "bandwidthUsedMbps": 0
+      "bandwidthUsedMbps": 0,
+      "connectionQuality": ""
     },
     "blue3": null,
     "red1": {
@@ -90,7 +91,8 @@ $ curl http://10.0.100.2:8081/status
       "txRateMbps": 6,
       "txPackets": 5246,
       "txBytes": 11830,
-      "bandwidthUsedMbps": 4.102
+      "bandwidthUsedMbps": 4.102,
+      "connectionQuality": "excellent"
     },
     "red2": null,
     "red3": null
@@ -174,7 +176,8 @@ $ curl http://10.12.34.1:8081/status
     "txRateMbps": 0,
     "txPackets": 0,
     "txBytes": 0,
-    "bandwidthUsedMbps": 0
+    "bandwidthUsedMbps": 0,
+    "connectionQuality": ""
   },
   "networkStatus6": {
     "ssid": "1234",
@@ -191,7 +194,8 @@ $ curl http://10.12.34.1:8081/status
     "txRateMbps": 516.2,
     "txPackets": 0,
     "txBytes": 52765,
-    "bandwidthUsedMbps": 0.002
+    "bandwidthUsedMbps": 0.002,
+    "connectionQuality": "warning"
   },
   "status": "ACTIVE",
   "version": "1.2.3"
