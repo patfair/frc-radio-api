@@ -297,6 +297,7 @@ func TestRadio_updateMonitoring(t *testing.T) {
 		},
 		radio.NetworkStatus6,
 	)
+	assert.Equal(t, "excellent", radio.NetworkStatus24.ConnectionQuality)
 	assert.Equal(t, 6, len(fakeShell.commandsRun))
 	assert.Contains(t, fakeShell.commandsRun, "luci-bwc -i ath0")
 	assert.Contains(t, fakeShell.commandsRun, "iwinfo ath0 assoclist")

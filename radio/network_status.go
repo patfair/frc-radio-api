@@ -10,6 +10,11 @@ import (
 const (
 	// Sentinel value used to populate status fields when a monitoring command failed.
 	monitoringErrorCode = -999
+
+	// Cutoff values used to determine the connection quality of the interface based on RX rate.
+	connectionQualityExcellentMinimum = 412.9
+	connectionQualityGoodMinimum      = 309.7
+	connectionQualityCautionMinimum   = 172.1
 )
 
 // NetworkStatus encapsulates the status of a single Wi-Fi interface on the device (i.e. a team SSID network on the
@@ -64,6 +69,9 @@ type NetworkStatus struct {
 
 	// Current five-second average total (rx + tx) bandwidth in megabits per second.
 	BandwidthUsedMbps float64 `json:"bandwidthUsedMbps"`
+
+	// Human-readable string describing connection quality to the remote device. Based on RX rate. Blank if not associated.
+	ConnectionQuality string `json:"connectionQuality"`
 }
 
 // updateMonitoring polls the access point for the current bandwidth usage and link state of the given network interface
@@ -135,6 +143,7 @@ func (status *NetworkStatus) parseAssocList(response string) {
 	status.RxPackets = 0
 	status.TxRateMbps = 0
 	status.TxPackets = 0
+	status.ConnectionQuality = ""
 	for _, line1Match := range line1Re.FindAllStringSubmatch(response, -1) {
 		macAddress := line1Match[1]
 		dataAgeMs, _ := strconv.Atoi(line1Match[5])
@@ -148,6 +157,7 @@ func (status *NetworkStatus) parseAssocList(response string) {
 			if len(line2Match) > 0 {
 				status.RxRateMbps, _ = strconv.ParseFloat(line2Match[1], 64)
 				status.RxPackets, _ = strconv.Atoi(line2Match[2])
+				status.determineConnectionQuality()
 			}
 			line3Match := line3R3.FindStringSubmatch(response)
 			if len(line3Match) > 0 {
@@ -170,5 +180,19 @@ func (status *NetworkStatus) parseIfconfig(response string) {
 	if len(bytesMatch) > 0 {
 		status.RxBytes, _ = strconv.Atoi(bytesMatch[1])
 		status.TxBytes, _ = strconv.Atoi(bytesMatch[2])
+	}
+}
+
+// determineConnectionQuality uses the stored RxRateMbps value to determine a connection quality string and updates the
+// status structure with the result.
+func (status *NetworkStatus) determineConnectionQuality() {
+	if status.RxRateMbps >= connectionQualityExcellentMinimum {
+		status.ConnectionQuality = "excellent"
+	} else if status.RxRateMbps >= connectionQualityGoodMinimum {
+		status.ConnectionQuality = "good"
+	} else if status.RxRateMbps >= connectionQualityCautionMinimum {
+		status.ConnectionQuality = "caution"
+	} else {
+		status.ConnectionQuality = "warning"
 	}
 }

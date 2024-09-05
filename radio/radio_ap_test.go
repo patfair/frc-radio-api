@@ -519,6 +519,7 @@ func TestRadio_updateMonitoring(t *testing.T) {
 	assert.Equal(t, -999.0, radio.StationStatuses["red1"].BandwidthUsedMbps)
 	assert.Equal(t, 12345, radio.StationStatuses["red1"].RxBytes)
 	assert.Equal(t, 98765, radio.StationStatuses["red1"].TxBytes)
+	assert.Equal(t, "excellent", radio.StationStatuses["red1"].ConnectionQuality)
 	assert.Equal(
 		t,
 		NetworkStatus{
@@ -536,6 +537,7 @@ func TestRadio_updateMonitoring(t *testing.T) {
 			TxBytes:           -999,
 			SignalNoiseRatio:  -999,
 			BandwidthUsedMbps: 0,
+			ConnectionQuality: "",
 		},
 		*radio.StationStatuses["blue2"],
 	)
