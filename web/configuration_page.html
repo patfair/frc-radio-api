@@ -14,7 +14,7 @@
 <body>
 	<div class="navbar sticky-top bg-body-tertiary">
 		<div class="container-fluid">
-			<a class="navbar-brand">
+			<a class="navbar-brand" style="flex-grow:1">
 				<svg height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 535.54 62.22">
 					<defs>
 						<style>
@@ -52,11 +52,10 @@
 				</svg>
 			</a>
 
-			<div class="flex">
-				<span class="fs-3 fw-bold">
-					VH-109 Radio Configuration
-				</span>
-			</div>
+			<svg id="bars" hidden xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h.01"/><path d="M7 20v-4"/><path d="M12 20v-8"/><path d="M17 20V8"/></svg>
+			<span class="fs-3 fw-bold">
+				VH-109 Radio Configuration
+			</span>
 		</div>
 	</div>
 
@@ -307,9 +306,14 @@
 			}
 		}
 
+		function setBar(bars, idx, color) {
+			const bar = bars.childNodes[idx];
+			bar.setAttribute("stroke", color);
+		}
+
 		async function getStatus(setConfig = false) {
 			try {
-				const res = await fetch("http://192.168.69.1/status");
+				const res = await fetch("/status");
 				const json = await res.json();
 
 				if (json.mode === "TEAM_ACCESS_POINT") {
@@ -323,6 +327,25 @@
 					]) {
 						document.getElementById(key).textContent = json.networkStatus6[key];
 					}
+				}
+
+				const bars = document.getElementById("bars");
+				bars.removeAttribute("hidden");
+				bars.childNodes.forEach(child => child.setAttribute("stroke", "#d1d5db"));
+				if (json.networkStatus6.connectionQuality === "excellent") {
+					setBar(bars, 0, "#22c55e");
+					setBar(bars, 1, "#22c55e");
+					setBar(bars, 2, "#22c55e");
+					setBar(bars, 3, "#22c55e");
+				} else if (json.networkStatus6.connectionQuality === "good") {
+					setBar(bars, 0, "#22c55e");
+					setBar(bars, 1, "#22c55e");
+					setBar(bars, 2, "#22c55e");
+				} else if (json.networkStatus6.connectionQuality === "caution") {
+					setBar(bars, 0, "#f59e0b");
+					setBar(bars, 1, "#f59e0b");
+				} else if (json.networkStatus6.connectionQuality === "warning") {
+					setBar(bars, 0, "#dc2626");
 				}
 
 				if (setConfig) {
