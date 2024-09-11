@@ -4,6 +4,7 @@
 package radio
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 )
@@ -59,7 +60,7 @@ func (request ConfigurationRequest) Validate(radio *Radio) error {
 		return fmt.Errorf("invalid ssidSuffix length: %d (expecting 0-%d)", len(request.SsidSuffix), maxSsidSuffixLength)
 	}
 	if !regexp.MustCompile(ssidSuffixRegex).MatchString(request.SsidSuffix) {
-		return fmt.Errorf("invalid ssidSuffix: %s (expecting alphanumeric)", request.SsidSuffix)
+		return errors.New("invalid ssidSuffix (expecting alphanumeric)")
 	}
 
 	if len(request.WpaKey6) < minWpaKeyLength || len(request.WpaKey6) > maxWpaKeyLength {
