@@ -47,7 +47,7 @@ type Radio struct {
 	TeamNumber int `json:"teamNumber"`
 
 	// Suffix currently appended to the 6GHz network SSID.
-	SsidSuffix string `json:"ssidSuffix,omitempty"`
+	SsidSuffix string `json:"ssidSuffix"`
 
 	// Status of the radio's 2.4GHz network.
 	NetworkStatus24 NetworkStatus `json:"networkStatus24"`
