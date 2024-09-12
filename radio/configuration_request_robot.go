@@ -12,9 +12,6 @@ import (
 const (
 	// Maximum length for the SSID suffix.
 	maxSsidSuffixLength = 8
-
-	// Regex to validate the SSID suffix.
-	ssidSuffixRegex = "^[a-zA-Z0-9]*$"
 )
 
 // ConfigurationRequest represents a JSON request to configure the radio.
@@ -32,10 +29,10 @@ type ConfigurationRequest struct {
 	// Suffix to be appended to all WPA SSIDs. Must be alphanumeric and less than eight charaters long.
 	SsidSuffix string `json:"ssidSuffix"`
 
-	// Team-specific WPA key for the 6GHz network used by the FMS. Must be at least eight characters long.
+	// Team-specific WPA key for the 6GHz network used by the FMS. Must be at least eight alphanumeric characters long.
 	WpaKey6 string `json:"wpaKey6"`
 
-	// WPA key for the 2.4GHz network broadcast by the radio for team use. Must be at least eight characters long.
+	// WPA key for the 2.4GHz network broadcast by the radio for team use. Must be at least eight alphanumeric characters long.
 	WpaKey24 string `json:"wpaKey24"`
 }
 
@@ -59,7 +56,7 @@ func (request ConfigurationRequest) Validate(radio *Radio) error {
 	if len(request.SsidSuffix) > maxSsidSuffixLength {
 		return fmt.Errorf("invalid ssidSuffix length: %d (expecting 0-%d)", len(request.SsidSuffix), maxSsidSuffixLength)
 	}
-	if !regexp.MustCompile(ssidSuffixRegex).MatchString(request.SsidSuffix) {
+	if !regexp.MustCompile(alphanumericRegex).MatchString(request.SsidSuffix) {
 		return errors.New("invalid ssidSuffix (expecting alphanumeric)")
 	}
 
@@ -68,11 +65,17 @@ func (request ConfigurationRequest) Validate(radio *Radio) error {
 			"invalid wpaKey6 length: %d (expecting %d-%d)", len(request.WpaKey6), minWpaKeyLength, maxWpaKeyLength,
 		)
 	}
+	if !regexp.MustCompile(alphanumericRegex).MatchString(request.WpaKey6) {
+		return errors.New("invalid wpaKey6 (expecting alphanumeric)")
+	}
 
 	if len(request.WpaKey24) < minWpaKeyLength || len(request.WpaKey24) > maxWpaKeyLength {
 		return fmt.Errorf(
 			"invalid wpaKey24 length: %d (expecting %d-%d)", len(request.WpaKey24), minWpaKeyLength, maxWpaKeyLength,
 		)
+	}
+	if !regexp.MustCompile(alphanumericRegex).MatchString(request.WpaKey24) {
+		return errors.New("invalid wpaKey24 (expecting alphanumeric)")
 	}
 
 	return nil

@@ -69,6 +69,11 @@ func TestConfigurationRequest_Validate(t *testing.T) {
 	err = request.Validate(radio)
 	assert.EqualError(t, err, "invalid wpaKey6 length: 17 (expecting 8-16)")
 
+	// Invalid 6GHz WPA key.
+	request.WpaKey6 = "abc123!@#"
+	err = request.Validate(radio)
+	assert.EqualError(t, err, "invalid wpaKey6 (expecting alphanumeric)")
+
 	// Too-short 2.4GHz WPA key.
 	request.WpaKey6 = "12345678"
 	request.WpaKey24 = "1234567"
@@ -79,4 +84,9 @@ func TestConfigurationRequest_Validate(t *testing.T) {
 	request.WpaKey24 = "12345678123456789"
 	err = request.Validate(radio)
 	assert.EqualError(t, err, "invalid wpaKey24 length: 17 (expecting 8-16)")
+
+	// Invalid 2.4GHz WPA key.
+	request.WpaKey24 = "abc123!@#"
+	err = request.Validate(radio)
+	assert.EqualError(t, err, "invalid wpaKey24 (expecting alphanumeric)")
 }

@@ -9,6 +9,8 @@ import (
 	"regexp"
 )
 
+const stationSsidRegex = "^[a-zA-Z0-9-]*$"
+
 // ConfigurationRequest represents a JSON request to configure the radio.
 type ConfigurationRequest struct {
 	// 5GHz or 6GHz channel number for the radio to use. Set to 0 to leave unchanged.
@@ -110,6 +112,9 @@ func (request ConfigurationRequest) Validate(radio *Radio) error {
 		if stationConfiguration.Ssid == "" {
 			return fmt.Errorf("SSID for station %s cannot be blank", stationName)
 		}
+		if !regexp.MustCompile(stationSsidRegex).MatchString(stationConfiguration.Ssid) {
+			return fmt.Errorf("invalid SSID for station %s (expecting alphanumeric with hyphens)", stationName)
+		}
 		if len(stationConfiguration.WpaKey) < minWpaKeyLength || len(stationConfiguration.WpaKey) > maxWpaKeyLength {
 			return fmt.Errorf(
 				"invalid WPA key length for station %s: %d (expecting %d-%d)",
@@ -118,6 +123,9 @@ func (request ConfigurationRequest) Validate(radio *Radio) error {
 				minWpaKeyLength,
 				maxWpaKeyLength,
 			)
+		}
+		if !regexp.MustCompile(alphanumericRegex).MatchString(stationConfiguration.WpaKey) {
+			return fmt.Errorf("invalid WPA key for station %s (expecting alphanumeric)", stationName)
 		}
 	}
 

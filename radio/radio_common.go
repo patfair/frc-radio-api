@@ -39,6 +39,9 @@ const (
 
 	// Length of the randomly generated salt used to obscure the WPA key.
 	saltLength = 16
+
+	// Regex to validate the a string as alphanumeric.
+	alphanumericRegex = "^[a-zA-Z0-9]*$"
 )
 
 // RadioType represents the hardware type of the radio.
