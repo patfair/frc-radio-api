@@ -19,9 +19,7 @@ func getListenAddress(r *radio.Radio) string {
 }
 
 // addRoutes adds additional route handlers to the router if needed.
-func addRoutes(router *mux.Router, web *WebServer) {
-	router.HandleFunc("/configuration", web.configurationPageHandler).Methods("GET")
-}
+func addRoutes(router *mux.Router, web *WebServer) {}
 
 // rootHandler redirects the root URL to the configuration page.
 func (web *WebServer) rootHandler(w http.ResponseWriter, r *http.Request) {

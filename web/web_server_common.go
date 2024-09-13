@@ -74,6 +74,7 @@ func (web *WebServer) newRouter() http.Handler {
 	router.HandleFunc("/", web.rootHandler).Methods("GET")
 	router.HandleFunc("/health", web.healthHandler).Methods("GET")
 	router.HandleFunc("/status", web.statusHandler).Methods("GET")
+	router.HandleFunc("/configuration", web.configurationPageHandler).Methods("GET")
 	router.HandleFunc("/configuration", web.configurationHandler).Methods("POST")
 	router.HandleFunc("/firmware", web.firmwareHandler).Methods("POST")
 	addRoutes(router, web)

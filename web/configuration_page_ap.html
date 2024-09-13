@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Configure Access Point</title>
+	<link rel="icon" href="https://vivid-hosting.net/img/favicon/favicon-32x32.png" type="image/x-icon">
+	<style>
+		:root{--bs-secondary-text-emphasis:#2b2f32;--bs-success-text-emphasis:#0a3622;--bs-warning-text-emphasis:#664d03;--bs-danger-text-emphasis:#58151c;--bs-secondary-bg-subtle:#e2e3e5;--bs-success-bg-subtle:#d1e7dd;--bs-warning-bg-subtle:#fff3cd;--bs-danger-bg-subtle:#f8d7da;--bs-secondary-border-subtle:#c4c8cb;--bs-success-border-subtle:#a3cfbb;--bs-warning-border-subtle:#ffe69c;--bs-danger-border-subtle:#f1aeb5;--bs-font-sans-serif:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue","Noto Sans","Liberation Sans",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";--bs-body-font-family:var(--bs-font-sans-serif);--bs-body-font-size:1rem;--bs-body-font-weight:400;--bs-body-line-height:1.5;--bs-body-color:#212529;--bs-body-bg:#fff;--bs-emphasis-color-rgb:0,0,0;--bs-secondary-color:rgba(33, 37, 41, 0.75);--bs-secondary-bg:#e9ecef;--bs-tertiary-bg:#f8f9fa;--bs-tertiary-bg-rgb:248,249,250;--bs-heading-color:inherit;--bs-link-color-rgb:13,110,253;--bs-link-hover-color-rgb:10,88,202;--bs-border-width:1px;--bs-border-style:solid;--bs-border-color:#dee2e6;--bs-border-radius:0.375rem;--bs-border-radius-xxl:2rem;--bs-form-invalid-border-color:#dc3545}*,::after,::before{box-sizing:border-box}@media (prefers-reduced-motion:no-preference){:root{scroll-behavior:smooth}}body{margin:0;font-family:var(--bs-body-font-family);font-size:var(--bs-body-font-size);font-weight:var(--bs-body-font-weight);line-height:var(--bs-body-line-height);color:var(--bs-body-color);text-align:var(--bs-body-text-align);background-color:var(--bs-body-bg);-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}hr{margin:1rem 0;color:inherit;border:0;border-top:var(--bs-border-width) solid;opacity:.25}.h1,.h3,h1,h3{margin-top:0;margin-bottom:.5rem;font-weight:500;line-height:1.2;color:var(--bs-heading-color)}.h1,h1{font-size:calc(1.375rem + 1.5vw)}@media (min-width:1200px){.h1,h1{font-size:2.5rem}}.h3,h3{font-size:calc(1.3rem + .6vw)}@media (min-width:1200px){.h3,h3{font-size:1.75rem}}p{margin-top:0;margin-bottom:1rem}b{font-weight:bolder}a{color:rgba(var(--bs-link-color-rgb),var(--bs-link-opacity,1));text-decoration:underline}a:hover{--bs-link-color-rgb:var(--bs-link-hover-color-rgb)}a:not([href]):not([class]),a:not([href]):not([class]):hover{color:inherit;text-decoration:none}img,svg{vertical-align:middle}caption{padding-top:.5rem;padding-bottom:.5rem;color:var(--bs-secondary-color);text-align:left}label{display:inline-block}button{border-radius:0}button:focus:not(:focus-visible){outline:0}button,input,select{margin:0;font-family:inherit;font-size:inherit;line-height:inherit}button,select{text-transform:none}[role=button]{cursor:pointer}select{word-wrap:normal}select:disabled{opacity:1}[type=button],[type=reset],[type=submit],button{-webkit-appearance:button}[type=button]:not(:disabled),[type=reset]:not(:disabled),[type=submit]:not(:disabled),button:not(:disabled){cursor:pointer}::-moz-focus-inner{padding:0;border-style:none}::-webkit-datetime-edit-day-field,::-webkit-datetime-edit-fields-wrapper,::-webkit-datetime-edit-hour-field,::-webkit-datetime-edit-minute,::-webkit-datetime-edit-month-field,::-webkit-datetime-edit-text,::-webkit-datetime-edit-year-field{padding:0}::-webkit-inner-spin-button{height:auto}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-color-swatch-wrapper{padding:0}::-webkit-file-upload-button{font:inherit;-webkit-appearance:button}::file-selector-button{font:inherit;-webkit-appearance:button}[hidden]{display:none!important}.container,.container-fluid{--bs-gutter-x:1.5rem;width:100%;padding-right:calc(var(--bs-gutter-x) * .5);padding-left:calc(var(--bs-gutter-x) * .5);margin-right:auto;margin-left:auto}@media (min-width:576px){.container{max-width:540px}}@media (min-width:768px){.container{max-width:720px}}@media (min-width:992px){.container{max-width:960px}}@media (min-width:1200px){.container{max-width:1140px}}@media (min-width:1400px){.container{max-width:1320px}}:root{}.form-label{margin-bottom:.5rem}.form-text{margin-top:.25rem;font-size:.875em;color:var(--bs-secondary-color)}.form-control{display:block;width:100%;padding:.375rem .75rem;font-size:1rem;font-weight:400;line-height:1.5;color:var(--bs-body-color);-webkit-appearance:none;-moz-appearance:none;appearance:none;background-color:var(--bs-body-bg);background-clip:padding-box;border:var(--bs-border-width) solid var(--bs-border-color);border-radius:var(--bs-border-radius);transition:border-color .15s ease-in-out,box-shadow .15s ease-in-out}@media (prefers-reduced-motion:reduce){.form-control{transition:none}}.form-control[type=file]{overflow:hidden}.form-control[type=file]:not(:disabled):not([readonly]){cursor:pointer}.form-control:focus{color:var(--bs-body-color);background-color:var(--bs-body-bg);border-color:#86b7fe;outline:0;box-shadow:0 0 0 .25rem rgba(13,110,253,.25)}.form-control::-webkit-date-and-time-value{min-width:85px;height:1.5em;margin:0}.form-control::-webkit-datetime-edit{display:block;padding:0}.form-control::-moz-placeholder{color:var(--bs-secondary-color);opacity:1}.form-control::placeholder{color:var(--bs-secondary-color);opacity:1}.form-control:disabled{background-color:var(--bs-secondary-bg);opacity:1}.form-control::-webkit-file-upload-button{padding:.375rem .75rem;margin:-.375rem -.75rem;-webkit-margin-end:.75rem;margin-inline-end:.75rem;color:var(--bs-body-color);background-color:var(--bs-tertiary-bg);pointer-events:none;border-color:inherit;border-style:solid;border-width:0;border-inline-end-width:var(--bs-border-width);border-radius:0;-webkit-transition:color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;transition:color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out}.form-control::file-selector-button{padding:.375rem .75rem;margin:-.375rem -.75rem;-webkit-margin-end:.75rem;margin-inline-end:.75rem;color:var(--bs-body-color);background-color:var(--bs-tertiary-bg);pointer-events:none;border-color:inherit;border-style:solid;border-width:0;border-inline-end-width:var(--bs-border-width);border-radius:0;transition:color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out}@media (prefers-reduced-motion:reduce){.form-control::-webkit-file-upload-button{-webkit-transition:none;transition:none}.form-control::file-selector-button{transition:none}}.form-control:hover:not(:disabled):not([readonly])::-webkit-file-upload-button{background-color:var(--bs-secondary-bg)}.form-control:hover:not(:disabled):not([readonly])::file-selector-button{background-color:var(--bs-secondary-bg)}.form-select{--bs-form-select-bg-img:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");display:block;width:100%;padding:.375rem 2.25rem .375rem .75rem;font-size:1rem;font-weight:400;line-height:1.5;color:var(--bs-body-color);-webkit-appearance:none;-moz-appearance:none;appearance:none;background-color:var(--bs-body-bg);background-image:var(--bs-form-select-bg-img),var(--bs-form-select-bg-icon,none);background-repeat:no-repeat;background-position:right .75rem center;background-size:16px 12px;border:var(--bs-border-width) solid var(--bs-border-color);border-radius:var(--bs-border-radius);transition:border-color .15s ease-in-out,box-shadow .15s ease-in-out}@media (prefers-reduced-motion:reduce){.form-select{transition:none}}.form-select:focus{border-color:#86b7fe;outline:0;box-shadow:0 0 0 .25rem rgba(13,110,253,.25)}.form-select:disabled{background-color:var(--bs-secondary-bg)}.form-select:-moz-focusring{color:transparent;text-shadow:0 0 0 var(--bs-body-color)}.form-check-input{--bs-form-check-bg:var(--bs-body-bg);flex-shrink:0;width:1em;height:1em;margin-top:.25em;vertical-align:top;-webkit-appearance:none;-moz-appearance:none;appearance:none;background-color:var(--bs-form-check-bg);background-image:var(--bs-form-check-bg-image);background-repeat:no-repeat;background-position:center;background-size:contain;border:var(--bs-border-width) solid var(--bs-border-color);-webkit-print-color-adjust:exact;color-adjust:exact;print-color-adjust:exact}.form-check-input[type=radio]{border-radius:50%}.form-check-input:active{filter:brightness(90%)}.form-check-input:focus{border-color:#86b7fe;outline:0;box-shadow:0 0 0 .25rem rgba(13,110,253,.25)}.form-check-input:checked{background-color:#0d6efd;border-color:#0d6efd}.form-check-input:checked[type=radio]{--bs-form-check-bg-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='2' fill='%23fff'/%3e%3c/svg%3e")}.form-check-input:disabled{pointer-events:none;filter:none;opacity:.5}.form-check-input:disabled~.form-check-label,.form-check-input[disabled]~.form-check-label{cursor:default;opacity:.5}.form-check-inline{display:inline-block;margin-right:1rem}.btn-check{position:absolute;clip:rect(0,0,0,0);pointer-events:none}.btn-check:disabled+.btn,.btn-check[disabled]+.btn{pointer-events:none;filter:none;opacity:.65}.btn{--bs-btn-padding-x:0.75rem;--bs-btn-padding-y:0.375rem;--bs-btn-font-family: ;--bs-btn-font-size:1rem;--bs-btn-font-weight:400;--bs-btn-line-height:1.5;--bs-btn-color:var(--bs-body-color);--bs-btn-bg:transparent;--bs-btn-border-width:var(--bs-border-width);--bs-btn-border-color:transparent;--bs-btn-border-radius:var(--bs-border-radius);--bs-btn-hover-border-color:transparent;--bs-btn-focus-box-shadow:0 0 0 0.25rem rgba(var(--bs-btn-focus-shadow-rgb), .5);display:inline-block;padding:var(--bs-btn-padding-y) var(--bs-btn-padding-x);font-family:var(--bs-btn-font-family);font-size:var(--bs-btn-font-size);font-weight:var(--bs-btn-font-weight);line-height:var(--bs-btn-line-height);color:var(--bs-btn-color);text-align:center;text-decoration:none;vertical-align:middle;cursor:pointer;-webkit-user-select:none;-moz-user-select:none;user-select:none;border:var(--bs-btn-border-width) solid var(--bs-btn-border-color);border-radius:var(--bs-btn-border-radius);background-color:var(--bs-btn-bg);transition:color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out}@media (prefers-reduced-motion:reduce){.btn{transition:none}}.btn:hover{color:var(--bs-btn-hover-color);background-color:var(--bs-btn-hover-bg);border-color:var(--bs-btn-hover-border-color)}.btn-check+.btn:hover{color:var(--bs-btn-color);background-color:var(--bs-btn-bg);border-color:var(--bs-btn-border-color)}.btn:focus-visible{color:var(--bs-btn-hover-color);background-color:var(--bs-btn-hover-bg);border-color:var(--bs-btn-hover-border-color);outline:0;box-shadow:var(--bs-btn-focus-box-shadow)}.btn-check:focus-visible+.btn{border-color:var(--bs-btn-hover-border-color);outline:0;box-shadow:var(--bs-btn-focus-box-shadow)}.btn-check:checked+.btn,.btn.active,.btn:first-child:active,:not(.btn-check)+.btn:active{color:var(--bs-btn-active-color);background-color:var(--bs-btn-active-bg);border-color:var(--bs-btn-active-border-color)}.btn-check:checked+.btn:focus-visible,.btn.active:focus-visible,.btn:first-child:active:focus-visible,:not(.btn-check)+.btn:active:focus-visible{box-shadow:var(--bs-btn-focus-box-shadow)}.btn.disabled,.btn:disabled{color:var(--bs-btn-disabled-color);pointer-events:none;background-color:var(--bs-btn-disabled-bg);border-color:var(--bs-btn-disabled-border-color);opacity:var(--bs-btn-disabled-opacity)}.btn-primary{--bs-btn-color:#fff;--bs-btn-bg:#0d6efd;--bs-btn-border-color:#0d6efd;--bs-btn-hover-color:#fff;--bs-btn-hover-bg:#0b5ed7;--bs-btn-hover-border-color:#0a58ca;--bs-btn-focus-shadow-rgb:49,132,253;--bs-btn-active-color:#fff;--bs-btn-active-bg:#0a58ca;--bs-btn-active-border-color:#0a53be}.navbar{--bs-navbar-padding-x:0;--bs-navbar-padding-y:0.5rem;--bs-navbar-brand-padding-y:0.3125rem;--bs-navbar-brand-margin-end:1rem;--bs-navbar-brand-font-size:1.25rem;--bs-navbar-brand-color:rgba(var(--bs-emphasis-color-rgb), 1);--bs-navbar-brand-hover-color:rgba(var(--bs-emphasis-color-rgb), 1);position:relative;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;padding:var(--bs-navbar-padding-y) var(--bs-navbar-padding-x)}.navbar>.container,.navbar>.container-fluid{display:flex;flex-wrap:inherit;align-items:center;justify-content:space-between}.navbar-brand{padding-top:var(--bs-navbar-brand-padding-y);padding-bottom:var(--bs-navbar-brand-padding-y);margin-right:var(--bs-navbar-brand-margin-end);font-size:var(--bs-navbar-brand-font-size);color:var(--bs-navbar-brand-color);text-decoration:none;white-space:nowrap}.navbar-brand:focus,.navbar-brand:hover{color:var(--bs-navbar-brand-hover-color)}.alert{--bs-alert-bg:transparent;--bs-alert-padding-x:1rem;--bs-alert-padding-y:1rem;--bs-alert-margin-bottom:1rem;--bs-alert-color:inherit;--bs-alert-border-color:transparent;--bs-alert-border:var(--bs-border-width) solid var(--bs-alert-border-color);--bs-alert-border-radius:var(--bs-border-radius);position:relative;padding:var(--bs-alert-padding-y) var(--bs-alert-padding-x);margin-bottom:var(--bs-alert-margin-bottom);color:var(--bs-alert-color);background-color:var(--bs-alert-bg);border:var(--bs-alert-border);border-radius:var(--bs-alert-border-radius)}.alert-secondary{--bs-alert-color:var(--bs-secondary-text-emphasis);--bs-alert-bg:var(--bs-secondary-bg-subtle);--bs-alert-border-color:var(--bs-secondary-border-subtle)}.alert-success{--bs-alert-color:var(--bs-success-text-emphasis);--bs-alert-bg:var(--bs-success-bg-subtle);--bs-alert-border-color:var(--bs-success-border-subtle)}.alert-warning{--bs-alert-color:var(--bs-warning-text-emphasis);--bs-alert-bg:var(--bs-warning-bg-subtle);--bs-alert-border-color:var(--bs-warning-border-subtle)}.alert-danger{--bs-alert-color:var(--bs-danger-text-emphasis);--bs-alert-bg:var(--bs-danger-bg-subtle);--bs-alert-border-color:var(--bs-danger-border-subtle)}.spinner-border{display:inline-block;width:var(--bs-spinner-width);height:var(--bs-spinner-height);vertical-align:var(--bs-spinner-vertical-align);border-radius:50%;animation:var(--bs-spinner-animation-speed) linear infinite var(--bs-spinner-animation-name)}.spinner-border{--bs-spinner-border-width:0.25em;border:var(--bs-spinner-border-width) solid currentcolor;border-right-color:transparent}@media (prefers-reduced-motion:reduce){.spinner-border{--bs-spinner-animation-speed:1.5s}}.placeholder{display:inline-block;min-height:1em;vertical-align:middle;cursor:wait;background-color:currentcolor;opacity:.5}.placeholder.btn::before{display:inline-block;content:""}.sticky-top{position:-webkit-sticky;position:sticky;top:0;z-index:1020}.visually-hidden{width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}.visually-hidden:not(caption){position:absolute!important}.d-grid{display:grid!important}.d-flex{display:flex!important}.border{border:var(--bs-border-width) var(--bs-border-style) var(--bs-border-color)!important}.border-top{border-top:var(--bs-border-width) var(--bs-border-style) var(--bs-border-color)!important}.flex-column{flex-direction:column!important}.flex-wrap{flex-wrap:wrap!important}.mx-auto{margin-right:auto!important;margin-left:auto!important}.gap-3{gap:1rem!important}.fs-3{font-size:calc(1.3rem + .6vw)!important}.fw-bold{font-weight:700!important}.bg-body-tertiary{--bs-bg-opacity:1;background-color:rgba(var(--bs-tertiary-bg-rgb),var(--bs-bg-opacity))!important}@media (min-width:1200px){.fs-3{font-size:1.75rem!important}}
+	</style>
+	<style>
+		.stationConfigs {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 0.25rem 1rem;
+		}
+
+		.stationConfigs > .form-label {
+			margin-bottom: 0;
+			margin-top: 0.5rem;
+		}
+
+		.statsContainer {
+			display: grid;
+			grid-template-columns: auto 1fr;
+			gap: 1rem;
+			margin-top: 1.5rem;
+		}
+
+		.statsContainer > h2 {
+			margin: 0;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="navbar sticky-top bg-body-tertiary">
+		<div class="container-fluid">
+			<a class="navbar-brand" style="flex-grow:1">
+				<svg height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 535.54 62.22">
+					<defs>
+						<style>
+							.a {
+								fill: #30abe2;
+							}
+
+							.b {
+								fill: #231f20;
+							}
+						</style>
+					</defs>
+					<title>vh_logo</title>
+					<polygon class="a"
+						points="21.49 61.2 0 1.07 13.17 1.07 28.38 45.57 43.11 1.07 55.99 1.07 34.45 61.2 21.49 61.2 21.49 61.2" />
+					<polygon class="a" points="57.61 1.07 69.75 1.07 69.75 61.2 57.61 61.2 57.61 1.07 57.61 1.07" />
+					<polygon class="a"
+						points="92.46 61.2 70.97 1.07 84.13 1.07 99.35 45.57 114.07 1.07 126.95 1.07 105.42 61.2 92.46 61.2 92.46 61.2" />
+					<polygon class="a" points="128.58 1.07 140.72 1.07 140.72 61.2 128.58 61.2 128.58 1.07 128.58 1.07" />
+					<path class="a"
+						d="M160.18,11.24V51.06h9.06a33,33,0,0,0,7.34-.57,11.2,11.2,0,0,0,4.9-2.5,12.73,12.73,0,0,0,3.18-5.8,39.19,39.19,0,0,0,1.23-11,35.89,35.89,0,0,0-1.23-10.71,13.76,13.76,0,0,0-3.45-5.82,11.56,11.56,0,0,0-5.62-2.83,55,55,0,0,0-10-.57ZM148,1.07h22.19a43.31,43.31,0,0,1,11.44,1.15,20.11,20.11,0,0,1,9.07,5.54,26.29,26.29,0,0,1,5.74,9.74,44.39,44.39,0,0,1,2,14.21,39.53,39.53,0,0,1-1.85,12.8,26.51,26.51,0,0,1-6.44,10.62,21.34,21.34,0,0,1-8.53,4.8,36.76,36.76,0,0,1-10.75,1.27H148V1.07Z" />
+					<polygon class="b"
+						points="205.16 61.2 205.16 1.07 213.12 1.07 213.12 25.76 244.37 25.76 244.37 1.07 252.33 1.07 252.33 61.2 244.37 61.2 244.37 32.85 213.12 32.85 213.12 61.2 205.16 61.2 205.16 61.2" />
+					<path class="b"
+						d="M264.64,32q0,10.87,5.84,17.12a20.39,20.39,0,0,0,29.45-.06q5.8-6.32,5.8-17.92a30.79,30.79,0,0,0-2.48-12.82A19.06,19.06,0,0,0,296,9.86a19.67,19.67,0,0,0-10.72-3,20.34,20.34,0,0,0-14.54,5.8q-6.09,5.81-6.09,19.38m-8.2-.12q0-15,8-23.44T285.23,0a28.79,28.79,0,0,1,15,4,26,26,0,0,1,10.19,11.09,36,36,0,0,1,3.51,16.14,35.43,35.43,0,0,1-3.69,16.36,25.21,25.21,0,0,1-10.46,10.93,29.89,29.89,0,0,1-14.6,3.71A28.44,28.44,0,0,1,270,58.12a26.38,26.38,0,0,1-10.13-11.2,33.94,33.94,0,0,1-3.45-15" />
+					<path class="b"
+						d="M314.77,41.88l7.51-.66a16.56,16.56,0,0,0,2.48,7.4,13.55,13.55,0,0,0,6.05,4.68A22.92,22.92,0,0,0,340,55.08a22.13,22.13,0,0,0,8-1.35A11.16,11.16,0,0,0,353.26,50a8.61,8.61,0,0,0,1.7-5.15,7.83,7.83,0,0,0-1.64-4.94,12.17,12.17,0,0,0-5.41-3.55,105.8,105.8,0,0,0-10.71-2.93q-8.29-2-11.61-3.75a16.26,16.26,0,0,1-6.42-5.6,13.72,13.72,0,0,1-2.11-7.49,15.28,15.28,0,0,1,2.58-8.51,16,16,0,0,1,7.55-6,28.63,28.63,0,0,1,11-2.05A30.15,30.15,0,0,1,350,2.19a17,17,0,0,1,7.85,6.34,18.21,18.21,0,0,1,3,9.47l-7.63.57q-.62-5.7-4.16-8.61T338.56,7.05q-7.22,0-10.52,2.65a7.93,7.93,0,0,0-3.3,6.38,6.84,6.84,0,0,0,2.34,5.33q2.3,2.09,12,4.29t13.31,3.83a18.24,18.24,0,0,1,7.75,6.13,14.94,14.94,0,0,1,2.5,8.55,16.36,16.36,0,0,1-2.75,9,18.09,18.09,0,0,1-7.89,6.6,27.5,27.5,0,0,1-11.59,2.36,34.61,34.61,0,0,1-13.68-2.38,19.15,19.15,0,0,1-8.65-7.16,20.29,20.29,0,0,1-3.3-10.81" />
+					<polygon class="b"
+						points="382.08 61.2 382.08 8.16 362.27 8.16 362.27 1.07 409.93 1.07 409.93 8.16 390.04 8.16 390.04 61.2 382.08 61.2 382.08 61.2" />
+					<polygon class="b" points="412.73 1.07 420.68 1.07 420.68 61.2 412.73 61.2 412.73 1.07 412.73 1.07" />
+					<polygon class="b"
+						points="427.91 61.2 427.91 1.07 436.07 1.07 467.65 48.27 467.65 1.07 475.28 1.07 475.28 61.2 467.12 61.2 435.54 13.95 435.54 61.2 427.91 61.2 427.91 61.2" />
+					<path class="b"
+						d="M510.07,37.61V30.56l25.47,0V52.83a45,45,0,0,1-12.1,7,35.89,35.89,0,0,1-12.8,2.36,34.14,34.14,0,0,1-16.1-3.79,25.07,25.07,0,0,1-10.93-11,34.54,34.54,0,0,1-3.69-16A37.22,37.22,0,0,1,483.59,15a24.42,24.42,0,0,1,10.56-11.3A33.1,33.1,0,0,1,510,0a31.45,31.45,0,0,1,11.79,2.11A19.55,19.55,0,0,1,530.08,8a26.11,26.11,0,0,1,4.55,9.84l-7.18,2a22.24,22.24,0,0,0-3.36-7.22,13.8,13.8,0,0,0-5.74-4.2,21.07,21.07,0,0,0-8.29-1.58,24.41,24.41,0,0,0-9.43,1.66,17.62,17.62,0,0,0-6.42,4.37,20.83,20.83,0,0,0-3.79,5.95,31.46,31.46,0,0,0-2.3,12.1,29.36,29.36,0,0,0,2.77,13.45,17.71,17.71,0,0,0,8.06,8A25,25,0,0,0,510.19,55a26.68,26.68,0,0,0,10.09-2,26.05,26.05,0,0,0,7.47-4.24V37.61Z" />
+				</svg>
+			</a>
+
+			<span class="fs-3 fw-bold">
+				VH-113 AP Configuration
+			</span>
+		</div>
+	</div>
+
+	<br />
+
+	<div class="container">
+		<form id="configForm" class="d-grid gap-3">
+			<div>
+				<label for="channel" class="form-label">Wi-Fi Channel (101 and up prohibited in EU)</label>
+				<select class="form-select" name="channel" id="channel" aria-describedby="channelHelp">
+					<option>5</option>
+					<option>13</option>
+					<option>21</option>
+					<option>29</option>
+					<option>37</option>
+					<option>45</option>
+					<option>53</option>
+					<option>61</option>
+					<option>69</option>
+					<option>77</option>
+					<option>85</option>
+					<option>93</option>
+					<option>101</option>
+					<option>109</option>
+					<option>117</option>
+				</select>
+				<div id="channelHelp" class="form-text">Wi-Fi 6E Channel</div>
+			</div>
+
+			<input hidden name="channelBandwidth" value="40MHz" />
+
+			<div>
+				<label for="redVlans" class="form-label">Red VLANs</label>
+				<select class="form-select" id="redVlans" name="redVlans" aria-describedby="redVlansHelp">
+					<option value="10_20_30" selected>10, 20, 30</option>
+					<option value="40_50_60">40, 50, 60</option>
+					<option value="70_80_90">70, 80, 90</option>
+				</select>
+				<div id="redVlansHelp" class="form-text">A set of 3 vlans for red 1-3</div>
+			</div>
+
+			<div>
+				<label for="blueVlans" class="form-label">Blue VLANs</label>
+				<select class="form-select" id="blueVlans" name="blueVlans" aria-describedby="blueVlansHelp">
+					<option value="10_20_30">10, 20, 30</option>
+					<option value="40_50_60" selected>40, 50, 60</option>
+					<option value="70_80_90">70, 80, 90</option>
+				</select>
+				<div id="blueVlansHelp" class="form-text">A set of 3 vlans for blue 1-3</div>
+			</div>
+
+			<div class="stationConfigs">
+				<label for="red1Ssid" class="form-label">Red 1 SSID</label>
+				<label for="red1WpaKey" class="form-label">Red 1 WPA Key</label>
+				<input type="text" class="form-control" name="red1_ssid" id="red1Ssid">
+				<input type="text" class="form-control" name="red1_wpaKey" id="red1WpaKey">
+				<label for="red2Ssid" class="form-label">Red 2 SSID</label>
+				<label for="red2WpaKey" class="form-label">Red 2 WPA Key</label>
+				<input type="text" class="form-control" name="red2_ssid" id="red2Ssid">
+				<input type="text" class="form-control" name="red2_wpaKey" id="red2WpaKey">
+				<label for="red3Ssid" class="form-label">Red 3 SSID</label>
+				<label for="red3WpaKey" class="form-label">Red 3 WPA Key</label>
+				<input type="text" class="form-control" name="red3_ssid" id="red3Ssid">
+				<input type="text" class="form-control" name="red3_wpaKey" id="red3WpaKey">
+
+				<label for="blue1Ssid" class="form-label">Blue 1 SSID</label>
+				<label for="blue1WpaKey" class="form-label">Blue 1 WPA Key</label>
+				<input type="text" class="form-control" name="blue1_ssid" id="blue1Ssid">
+				<input type="text" class="form-control" name="blue1_wpaKey" id="blue1WpaKey">
+				<label for="blue2Ssid" class="form-label">Blue 2 SSID</label>
+				<label for="blue2WpaKey" class="form-label">Blue 2 WPA Key</label>
+				<input type="text" class="form-control" name="blue2_ssid" id="blue2Ssid">
+				<input type="text" class="form-control" name="blue2_wpaKey" id="blue2WpaKey">
+				<label for="blue3Ssid" class="form-label">Blue 3 SSID</label>
+				<label for="blue3WpaKey" class="form-label">Blue 3 WPA Key</label>
+				<input type="text" class="form-control" name="blue3_ssid" id="blue3Ssid">
+				<input type="text" class="form-control" name="blue3_wpaKey" id="blue3WpaKey">
+			</div>
+
+			<button id="configSubmit" type="sumbit" class="btn btn-primary">Configure</button>
+		</form>
+	</div>
+
+	<br />
+
+	<div class="container d-flex flex-column">
+		<div class="mx-auto" id="configSpinner" hidden>
+			<div class="spinner-border" role="status">
+				<span class="visually-hidden">Loading...</span>
+			</div>
+		</div>
+		<div id="configResult" class="alert alert-secondary" role="alert" hidden></div>
+	</div>
+
+	<br />
+	<hr />
+	<br />
+
+	<div id="connections" class="container">
+		<h1>Connections</h1>
+		<div hidden class="statsContainer">
+			<h2 class="station"></h2>
+			<svg class="bars" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h.01"/><path d="M7 20v-4"/><path d="M12 20v-8"/><path d="M17 20V8"/></svg>
+			<span>Linked</span>
+			<samp class="isLinked"></samp>
+			<span>Linked MAC Address</span>
+			<samp class="macAddress"></samp>
+			<span>Recieve Rate (Mbps)</span>
+			<samp class="rxRateMbps"></samp>
+			<span>Bandwidth Used (Mbps)</span>
+			<samp class="bandwidthUsedMbps"></samp>
+			<span>Connection Quality</span>
+			<samp class="connectionQuality"></samp>
+		</div>
+	</div>
+	</div>
+
+	<br />
+	<hr />
+	<br />
+
+	<div class="container">
+		<h1>Firmware Upload</h1>
+		<form id="firmwareForm" class="d-grid gap-3">
+			<div>
+				<label for="file" class="form-label">File</label>
+				<input type="file" class="form-control" name="file" id="file" aria-describedby="fileHelp">
+				<div id="fileHelp" class="form-text">Firmware file to upload</div>
+			</div>
+			<div>
+				<label for="checksum" class="form-label">Checksum</label>
+				<input type="text" class="form-control" name="checksum" id="checksum" aria-describedby="checksumHelp">
+				<div id="checksumHelp" class="form-text">64-character hexadecimal-encoded SHA-256 hash of unencrypted file</div>
+			</div>
+
+			<button id="firmwareSubmit" type="sumbit" class="btn btn-primary">Upload</button>
+		</form>
+	</div>
+
+	<br />
+
+	<div class="container d-flex flex-column">
+		<div class="mx-auto" id="firmwareSpinner" hidden>
+			<div class="spinner-border" role="status">
+				<span class="visually-hidden">Loading...</span>
+			</div>
+		</div>
+		<div id="firmwareResult" class="alert alert-secondary" role="alert" hidden></div>
+	</div>
+
+	<script>
+		const form = {
+			config: document.getElementById("configForm"),
+			firmware: document.getElementById("firmwareForm")
+		};
+		const spinner = {
+			config: document.getElementById("configSpinner"),
+			firmware: document.getElementById("firmwareSpinner")
+		};
+		const submitBtn = {
+			config: document.getElementById("configSubmit"),
+			firmware: document.getElementById("firmwareSubmit")
+		};
+		const result = {
+			config: document.getElementById("configResult"),
+			firmware: document.getElementById("firmwareResult")
+		};
+
+		function setHiddenInputs(className, hidden) {
+			const apOnly = document.getElementsByClassName(className);
+			for (let i = 0; i < apOnly.length; i++) {
+				apOnly[i].hidden = hidden
+			}
+		}
+
+		function setLoading(prefix, loading) {
+			spinner[prefix].hidden = !loading;
+			if (loading) {
+				submitBtn[prefix].setAttribute("disabled", true);
+			} else {
+				submitBtn[prefix].removeAttribute("disabled")
+			}
+		}
+
+		function setResult(prefix, header, body) {
+			result[prefix].hidden = header === undefined && body === undefined;
+			result[prefix].innerHTML = `<h3>${header}</h3><p>${body}</p>`;
+		}
+
+		function setResultStatus(prefix, color) {
+			result[prefix].setAttribute("class", `alert alert-${color}`)
+		}
+
+		async function doRequest(prefix, endpoint, body, timeout) {
+			setLoading(prefix, true);
+			setResult(prefix);
+			setResultStatus(prefix, "secondary");
+
+			try {
+				const controller = new AbortController();
+				const timeoutId = setTimeout(() => controller.abort(), timeout * 1000);
+				const res = await fetch(endpoint, {
+					method: "POST",
+					body: body,
+					signal: controller.signal,
+				});
+				clearTimeout(timeoutId);
+				setLoading(prefix, false);
+
+				const text = await res.text();
+
+				if (res.status == 202) {
+					setResultStatus(prefix, "success");
+					setResult(prefix, "Success", text);
+				}
+				else if (res.status == 404) {
+					setResultStatus(prefix, "danger");
+					return;
+				}
+				else if (res.status == 401) {
+					setResultStatus(prefix, "danger");
+					setResult(prefix, "Unauthorized", text);
+				}
+				else if (res.status == 400) {
+					setResultStatus(prefix, "warning");
+					setResult(prefix, "Bad Request", text);
+				}
+			} catch (err) {
+				setLoading(prefix, false);
+				setResultStatus(prefix, "danger");
+				setResult(prefix, "Unknown Error", err);
+				return;
+			}
+		}
+
+		function setBar(bars, idx, color) {
+			const bar = bars.childNodes[idx];
+			bar.setAttribute("stroke", color);
+		}
+
+		async function getStatus(setConfig = false) {
+			try {
+				const res = await fetch("/status");
+				const json = await res.json();
+
+				const connections = document.getElementById("connections");
+				while (connections.children.length > 2) connections.removeChild(connections.lastChild);
+				for (const [station, config] of Object.entries(json.stationStatuses)) {
+					if (config === null) continue;
+					const clone = connections.children[1].cloneNode(true);
+					clone.removeAttribute("hidden");
+					clone.querySelector(".station").textContent =
+						station.charAt(0).toUpperCase() + station.slice(1, -1) + ' ' + station.charAt(station.length - 1);
+					for (const key of [
+						"isLinked",
+						"macAddress",
+						"rxRateMbps",
+						"bandwidthUsedMbps",
+						"connectionQuality",
+					]) {
+						clone.querySelector("." + key).textContent = config[key];
+					}
+					const bars = clone.querySelector(".bars");
+					bars.childNodes.forEach(child => child.setAttribute("stroke", "#d1d5db"));
+					if (config.connectionQuality === "excellent") {
+						setBar(bars, 0, "#22c55e");
+						setBar(bars, 1, "#22c55e");
+						setBar(bars, 2, "#22c55e");
+						setBar(bars, 3, "#22c55e");
+					} else if (config.connectionQuality === "good") {
+						setBar(bars, 0, "#22c55e");
+						setBar(bars, 1, "#22c55e");
+						setBar(bars, 2, "#22c55e");
+					} else if (config.connectionQuality === "caution") {
+						setBar(bars, 0, "#f59e0b");
+						setBar(bars, 1, "#f59e0b");
+					} else if (config.connectionQuality === "warning") {
+						setBar(bars, 0, "#dc2626");
+					}
+					connections.appendChild(clone);
+				}
+
+
+				if (setConfig) {
+					document.getElementById("channel").value = json.channel;
+					document.getElementById("redVlans").value = json.redVlans;
+					document.getElementById("blueVlans").value = json.blueVlans;
+					for (const [station, config] of Object.entries(json.stationStatuses)) {
+						if (config && config.ssid) {
+							document.getElementById(`${station}Ssid`).value = config.ssid;
+						}
+					}
+				}
+			} catch (e) {
+				console.error(e);
+			}
+		}
+
+		form.config.addEventListener("submit", (event) => {
+			event.preventDefault();
+			const formData = new FormData(event.target);
+			const data = Object.fromEntries(formData.entries());
+			data.channel = +data.channel;
+			data.stationConfigurations = {};
+			["red1", "red2", "red3", "blue1", "blue2", "blue3"].map(station => {
+				const ssidKey = `${station}_ssid`;
+				const wpaKeyKey = `${station}_wpaKey`;
+				if (data[ssidKey].length > 0 && data[wpaKeyKey].length > 0) {
+					data.stationConfigurations[station] = {
+						ssid: data[ssidKey],
+						wpaKey: data[wpaKeyKey],
+					};
+				}
+				delete data[ssidKey];
+				delete data[wpaKeyKey];
+			});
+			doRequest("config", "/configuration", JSON.stringify(data), 10);
+		});
+
+		form.firmware.addEventListener("submit", (event) => {
+			event.preventDefault();
+			const formData = new FormData(event.target);
+			doRequest("firmware", "/firmware", formData, 60);
+		})
+
+		setLoading("config", true);
+		getStatus(true)
+			.then(() => setLoading("config", false));
+
+		setInterval(() => {
+			getStatus();
+		}, 5000);
+	</script>
+</body>
+
+</html>
