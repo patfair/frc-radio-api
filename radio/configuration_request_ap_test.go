@@ -68,6 +68,13 @@ func TestConfigurationRequest_Validate(t *testing.T) {
 	err = request.Validate(linksysRadio)
 	assert.EqualError(t, err, "SSID for station blue1 cannot be blank")
 
+	// Too-long SSID.
+	request = ConfigurationRequest{
+		StationConfigurations: map[string]StationConfiguration{"blue1": {Ssid: "12345-longsuffix", WpaKey: "12345678"}},
+	}
+	err = request.Validate(linksysRadio)
+	assert.EqualError(t, err, "invalid SSID length for station blue1: 16 (expecting 1-14)")
+
 	// Invalid characters in SSID.
 	request = ConfigurationRequest{
 		StationConfigurations: map[string]StationConfiguration{"blue1": {Ssid: "abc_XYZ", WpaKey: "12345678"}},
@@ -77,7 +84,7 @@ func TestConfigurationRequest_Validate(t *testing.T) {
 
 	// Too-short WPA key.
 	request = ConfigurationRequest{
-		StationConfigurations: map[string]StationConfiguration{"blue1": {Ssid: "254-suffix", WpaKey: "1234567"}},
+		StationConfigurations: map[string]StationConfiguration{"blue1": {Ssid: "12345-suffix", WpaKey: "1234567"}},
 	}
 	err = request.Validate(linksysRadio)
 	assert.EqualError(t, err, "invalid WPA key length for station blue1: 7 (expecting 8-16)")

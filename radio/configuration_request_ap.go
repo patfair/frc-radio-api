@@ -9,7 +9,10 @@ import (
 	"regexp"
 )
 
-const stationSsidRegex = "^[a-zA-Z0-9-]*$"
+const (
+	maxStationSsidLength = 14
+	stationSsidRegex     = "^[a-zA-Z0-9-]*$"
+)
 
 // ConfigurationRequest represents a JSON request to configure the radio.
 type ConfigurationRequest struct {
@@ -111,6 +114,14 @@ func (request ConfigurationRequest) Validate(radio *Radio) error {
 		}
 		if stationConfiguration.Ssid == "" {
 			return fmt.Errorf("SSID for station %s cannot be blank", stationName)
+		}
+		if len(stationConfiguration.Ssid) > maxStationSsidLength {
+			return fmt.Errorf(
+				"invalid SSID length for station %s: %d (expecting 1-%d)",
+				stationName,
+				len(stationConfiguration.Ssid),
+				maxStationSsidLength,
+			)
 		}
 		if !regexp.MustCompile(stationSsidRegex).MatchString(stationConfiguration.Ssid) {
 			return fmt.Errorf("invalid SSID for station %s (expecting alphanumeric with hyphens)", stationName)
