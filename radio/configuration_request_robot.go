@@ -12,6 +12,9 @@ import (
 const (
 	// Maximum length for the SSID suffix.
 	maxSsidSuffixLength = 8
+
+	// Regex to validate the SSID suffix.
+	ssidSuffixRegex = "^[a-zA-Z0-9]*$"
 )
 
 // ConfigurationRequest represents a JSON request to configure the radio.
@@ -26,13 +29,14 @@ type ConfigurationRequest struct {
 	// Team number to configure the radio for. Must be between 1 and 25499.
 	TeamNumber int `json:"teamNumber"`
 
-	// Suffix to be appended to all WPA SSIDs. Must be alphanumeric and less than eight charaters long.
+	// Suffix to be appended to all WPA SSIDs. Must be alphanumeric and at most eight characters long.
 	SsidSuffix string `json:"ssidSuffix"`
 
 	// Team-specific WPA key for the 6GHz network used by the FMS. Must be at least eight alphanumeric characters long.
 	WpaKey6 string `json:"wpaKey6"`
 
-	// WPA key for the 2.4GHz network broadcast by the radio for team use. Must be at least eight alphanumeric characters long.
+	// WPA key for the 2.4GHz network broadcast by the radio for team use. Must be at least eight alphanumeric
+	// characters long.
 	WpaKey24 string `json:"wpaKey24"`
 }
 
@@ -54,9 +58,11 @@ func (request ConfigurationRequest) Validate(radio *Radio) error {
 	}
 
 	if len(request.SsidSuffix) > maxSsidSuffixLength {
-		return fmt.Errorf("invalid ssidSuffix length: %d (expecting 0-%d)", len(request.SsidSuffix), maxSsidSuffixLength)
+		return fmt.Errorf(
+			"invalid ssidSuffix length: %d (expecting 0-%d)", len(request.SsidSuffix), maxSsidSuffixLength,
+		)
 	}
-	if !regexp.MustCompile(alphanumericRegex).MatchString(request.SsidSuffix) {
+	if !regexp.MustCompile(ssidSuffixRegex).MatchString(request.SsidSuffix) {
 		return errors.New("invalid ssidSuffix (expecting alphanumeric)")
 	}
 

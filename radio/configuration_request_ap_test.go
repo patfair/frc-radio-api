@@ -75,7 +75,7 @@ func TestConfigurationRequest_Validate(t *testing.T) {
 	err = request.Validate(linksysRadio)
 	assert.EqualError(t, err, "invalid SSID length for station blue1: 16 (expecting 1-14)")
 
-	// Invalid SSID.
+	// Invalid characters in SSID.
 	request = ConfigurationRequest{
 		StationConfigurations: map[string]StationConfiguration{"blue1": {Ssid: "abc_XYZ", WpaKey: "12345678"}},
 	}
@@ -96,7 +96,7 @@ func TestConfigurationRequest_Validate(t *testing.T) {
 	err = request.Validate(linksysRadio)
 	assert.EqualError(t, err, "invalid WPA key length for station blue1: 17 (expecting 8-16)")
 
-	// Invalid WPA key.
+	// Invalid characters in WPA key.
 	request = ConfigurationRequest{
 		StationConfigurations: map[string]StationConfiguration{"blue1": {Ssid: "254", WpaKey: "aAbC2__+#"}},
 	}

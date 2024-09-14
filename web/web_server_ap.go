@@ -68,10 +68,7 @@ func getVlan100IpAddress() (string, error) {
 }
 
 // addRoutes adds additional route handlers to the router if needed.
-func addRoutes(router *mux.Router, web *WebServer) {
-	router.HandleFunc("/scan/start", web.startScanHandler).Methods("GET")
-	router.HandleFunc("/scan/result", web.scanResultHandler).Methods("GET")
-}
+func addRoutes(router *mux.Router, web *WebServer) {}
 
 // rootHandler redirects the root URL to the status page.
 func (web *WebServer) rootHandler(w http.ResponseWriter, r *http.Request) {
